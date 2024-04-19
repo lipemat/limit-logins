@@ -4,6 +4,7 @@ declare( strict_types=1 );
 namespace Lipe\Limit_Logins\Log;
 
 use Lipe\Limit_Logins\Attempts;
+use Lipe\Limit_Logins\Utils\Ip;
 
 /**
  * @author Mat Lipe
@@ -39,6 +40,16 @@ final class Attempt implements \JsonSerializable {
 	}
 
 
+	public function is_expired(): bool {
+		return $this->expires < (int) gmdate( 'U' );
+	}
+
+
+	public function is_blocked(): bool {
+		return $this->count >= Attempts::ALLOWED_ATTEMPTS && ! $this->is_expired();
+	}
+
+
 	/**
 	 * @phpstan-return DATA
 	 */
@@ -50,6 +61,21 @@ final class Attempt implements \JsonSerializable {
 			'count'    => $this->count,
 			'expires'  => $this->expires,
 		];
+	}
+
+
+	/**
+	 * Create a new attempt using the information from the current request.
+	 *
+	 */
+	public static function new_attempt( string $username ): self {
+		return new self(
+			Ip::in()->get_current_ip(),
+			$username,
+			Gateway::detect(),
+			1,
+			(int) gmdate( 'U' ) + Attempts::DURATION
+		);
 	}
 
 

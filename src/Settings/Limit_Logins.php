@@ -21,11 +21,11 @@ final class Limit_Logins {
 	public const NAME = 'lipe/limit-logins/settings/limit-logins';
 
 	public const CONTACT = 'lipe/limit-logins/settings/limit-logins/contact';
-	public const LOG     = 'lipe/limit-logins/settings/limit-logins/log';
+	public const LOG     = 'lipe/limit-logins/settings/limit-logins/logs';
 
 
 	private function hook(): void {
-		add_action( 'cmb2_init', function() {
+		add_action( 'cmb2_admin_init', function() {
 			$this->register();
 		} );
 	}
@@ -48,10 +48,16 @@ final class Limit_Logins {
 	 * @phpstan-return list<DATA>
 	 */
 	public function get_logs(): array {
-		$logs = $this->get_option( self::LOG, [] );
-		if ( ! is_array( $logs ) ) {
+		$logs = $this->get_option( self::LOG, '' );
+		if ( ! \is_string( $logs ) || '' === $logs ) {
 			return [];
 		}
-		return $logs;
+		try {
+			/** @var list<DATA> $decoded */
+			$decoded = (array) \json_decode( $logs, true, 512, JSON_THROW_ON_ERROR );
+		} catch ( \JsonException ) {
+			return [];
+		}
+		return $decoded;
 	}
 }
