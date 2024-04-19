@@ -1,4 +1,4 @@
-# limit-logins
+# Limit Logins
 
 <p>
   <a href="https://github.com/lipemat/limit-logins/releases/latest">
@@ -9,11 +9,9 @@
   <img alt="License" src="https://img.shields.io/packagist/l/lipemat/limit-logins.svg">
 </p>
 
-## Description
+WordPress plugin that limits the number of concurrent logins for a user.
 
-A WordPress plugin that limits the number of concurrent logins for a user.
-
-If you really want to prevent brute force attacks and are not concerned with annoying your legitable users, this plugin may be for you.
+If you really want to prevent brute force attacks and are not concerned with annoying your legitimate users, this plugin may be for you.
 
 ### Tracks
 
@@ -24,11 +22,11 @@ If the same IP or username fails to login more than 5 times then neither the use
 
 ### Purpose
 
-I had been using other limit login attempts plugins for a long time. Every time an attacker was able to find a way to attempt more logins, I wrote another extension and unit tests. While writing around 30 tests, I realized that no third-party plugin was ever going to provide the desired level of security. There is simply too much concern over affecting legitimate users.
+I had been using other limit login attempts plugins for a long time. Every time an attacker was able to find a way to attempt more logins than the set number, I wrote another extension and unit tests. While writing around something like 30 tests, I realized that no third-party plugin was ever going to provide the desired level of security. There is simply too much concern over affecting legitimate users.
 
 This plugin is the combination of every extension and unit test I wrote for the other plugins.
 
-Sorry, attackers, but I'm over you. :-p
+Sorry attackers, but I'm over you. :-p
 
 
 ### Installation
