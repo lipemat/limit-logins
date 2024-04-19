@@ -18,6 +18,6 @@ final class Ip {
 		if ( isset( $_SERVER['REMOTE_ADDR'] ) && false !== \WP_Http::is_ip_address( sn( $_SERVER['REMOTE_ADDR'] ) ) ) {
 			return sn( $_SERVER['REMOTE_ADDR'] );
 		}
-		return 'unknown';
+		return '0.0.0.0';
 	}
 }

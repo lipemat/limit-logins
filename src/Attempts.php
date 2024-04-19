@@ -13,7 +13,6 @@ use Lipe\Limit_Logins\Utils\Ip;
  * @author Mat Lipe
  * @since  April 2024
  *
- * @phpstan-import-type DATA from Log\Attempt
  */
 final class Attempts {
 	use Singleton;
@@ -39,7 +38,7 @@ final class Attempts {
 			$attempts[] = Attempt::new_attempt( $username );
 		}
 
-		Settings::in()->update_option( Settings::LOG, wp_json_encode( $attempts ) );
+		Settings::in()->update_option( Settings::LOGGED_FAILURES, \array_map( fn( $attempt ) => $attempt->jsonSerialize(), $attempts ) );
 	}
 
 

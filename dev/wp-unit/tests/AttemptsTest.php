@@ -117,16 +117,18 @@ class AttemptsTest extends \WP_UnitTestCase {
 
 		// Set the expiration to 1 second from now.
 		$data['expires'] = (int) gmdate( 'U' ) + 1;
-		Settings::in()->update_option( Settings::LOG, wp_json_encode( [ $data ] ) );
+		Settings::in()->update_option( Settings::LOGGED_FAILURES, [ $data ] );
 		$this->assertSame( $this->too_many_error(), wp_authenticate( $user->user_login, 'NOT VALID PASSWORD' )->get_error_message() );
 		$this->assertInstanceOf( Attempt::class, Attempts::in()->get_existing( $user->user_login ) );
 
 		// Set the expiration to 1 second ago.
+		$this->assertSame( Attempts::ALLOWED_ATTEMPTS, Attempts::in()->get_existing( $user->user_login )->get_count() );
 		$data['expires'] = (int) gmdate( 'U' ) - 1;
-		Settings::in()->update_option( Settings::LOG, wp_json_encode( [ $data ] ) );
+		Settings::in()->update_option( Settings::LOGGED_FAILURES, wp_json_encode( [ $data ] ) );
 		$this->assertNotWPError( wp_authenticate( $user->user_login, $password ) );
 
 		// Clears out old attempts during the next failure.
+		$this->assertNull( Attempts::in()->get_existing( $user->user_login ) );
 		$this->assertSame( $this->default_error( $user->user_login ), wp_authenticate( $user->user_login, 'NOT VALID PASSWORD' )->get_error_message() );
 		$this->assertSame( 1, Attempts::in()->get_existing( $user->user_login )->get_count() );
 	}

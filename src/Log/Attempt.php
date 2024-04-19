@@ -17,9 +17,15 @@ use Lipe\Limit_Logins\Utils\Ip;
  *     count: int,
  *     expires: int
  * }
- *
  */
 final class Attempt implements \JsonSerializable {
+	public const IP       = 'ip';
+	public const USERNAME = 'username';
+	public const GATEWAY  = 'gateway';
+	public const COUNT    = 'count';
+	public const EXPIRES  = 'expires';
+
+
 	private function __construct(
 		public readonly string $ip,
 		public readonly string $username,
@@ -55,11 +61,11 @@ final class Attempt implements \JsonSerializable {
 	 */
 	public function jsonSerialize(): array {
 		return [
-			'ip'       => $this->ip,
-			'username' => $this->username,
-			'gateway'  => $this->gateway->value,
-			'count'    => $this->count,
-			'expires'  => $this->expires,
+			self::IP       => $this->ip,
+			self::USERNAME => $this->username,
+			self::GATEWAY  => $this->gateway->value,
+			self::COUNT    => $this->count,
+			self::EXPIRES  => $this->expires,
 		];
 	}
 
@@ -84,11 +90,11 @@ final class Attempt implements \JsonSerializable {
 	 */
 	public static function factory( array $data ): self {
 		return new self(
-			$data['ip'],
-			$data['username'],
-			Gateway::from( $data['gateway'] ),
-			$data['count'],
-			$data['expires']
+			$data[ self::IP ],
+			$data[ self::USERNAME ],
+			Gateway::from( $data[ self::GATEWAY ] ),
+			$data[ self::COUNT ],
+			$data[ self::EXPIRES ]
 		);
 	}
 }
