@@ -4,6 +4,7 @@ declare( strict_types=1 );
 namespace Lipe\Limit_Logins;
 
 use Lipe\Limit_Logins\Traits\Singleton;
+use Lipe\Limit_Logins\Settings\Limit_Logins as Settings;
 
 /**
  * @author Mat Lipe
@@ -28,9 +29,19 @@ final class Authenticate {
 
 		$existing = Attempts::in()->get_existing( $user->user_login );
 		if ( null !== $existing && $existing->is_blocked() ) {
-			return new \WP_Error( self::CODE_BLOCKED, '<strong>ERROR:</strong> Too many failed login attempts.' );
+			return new \WP_Error( self::CODE_BLOCKED, $this->get_error() );
 		}
 
 		return $user;
+	}
+
+
+	private function get_error(): string {
+		$contact = Settings::in()->get_option( Settings::CONTACT, '' );
+		if ( ! is_string( $contact ) || '' === $contact ) {
+			return '<strong>ERROR:</strong> Too many failed login attempts.';
+		}
+
+		return "<strong>ERROR:</strong> Too many failed login attempts.<br />Use the <a href=\"{$contact}\">contact form</a> for help.";
 	}
 }

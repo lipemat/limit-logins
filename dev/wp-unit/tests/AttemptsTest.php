@@ -138,7 +138,6 @@ class AttemptsTest extends \WP_UnitTestCase {
 
 
 	private function too_many_error(): string {
-		return '<strong>ERROR:</strong> Too many failed login attempts.';
+		return call_private_method( Authenticate::in(), 'get_error' );
 	}
-
 }
