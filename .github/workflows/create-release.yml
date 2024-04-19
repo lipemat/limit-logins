@@ -1,0 +1,23 @@
+# @notice You must enable write permissions for this action to work.
+# @see /settings/actions in your repo.
+name: Create GitHub Release
+run-name: Create release for ${{ github.ref_name }} on GitHub.
+env:
+  VERSION: 2.1.0
+
+on:
+  push:
+    tags-ignore:
+      - "*beta*"
+
+jobs:
+  create-release:
+    name: Create release for ${{ github.ref_name }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Version ${{ github.ref_name }}
+          draft: false
+          prerelease: false
