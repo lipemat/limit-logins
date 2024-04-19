@@ -6,7 +6,7 @@
   "minimum-stability": "stable",
   "require": {
     "lipemat/cmb2": "^2.10",
-    "lipemat/wordpress-libs": "^4.6",
+    "lipemat/wordpress-libs": "*",
     "php": ">=8.2"
   },
   "autoload": {
