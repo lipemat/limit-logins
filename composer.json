@@ -16,5 +16,8 @@
     "psr-4": {
       "Lipe\\Limit_Logins\\": "src/"
     }
+  },
+  "scripts": {
+    "git-hooks": "dev/bin/git-hooks.sh"
   }
 }

@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<ruleset name="Limit Logins - Rules">
+	<!-- See https://github.com/squizlabs/PHP_CodeSniffer/wiki/Annotated-Ruleset -->
+
+	<description>Ruleset for Limit Logins</description>
+	<version>4.2.1</version>
+
+	<!-- Include when not specified -->
+	<file>./</file>
+
+	<!-- Show file path based on project root. -->
+	<arg name="basepath" value="." />
+
+	<!-- Cache between runs -->
+	<arg name="cache" value="./.phpcs.cache" />
+
+	<!-- @see https://github.com/WordPress/WordPress-Coding-Standards/wiki/Customizable-sniff-properties#various-sniffs-set-the-minimum-supported-wp-version -->
+	<config name="minimum_wp_version" value="6.4" />
+
+	<!-- @see https://github.com/PHPCompatibility/PHPCompatibilityWP#how-to-use -->
+	<config name="testVersion" value="8.2-" />
+
+	<rule ref="Lipe" />
+
+	<!-- Allow the "lipe" or "Lipe" prefix for hooks, namespaces and functions -->
+	<!-- https://github.com/WordPress/WordPress-Coding-Standards/wiki/Customizable-sniff-properties#wordpressnamingconventionsprefixallglobals-prefix-everything-in-the-global-namespace -->
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array">
+				<element value="Lipe\Limit_Logins" />
+			</property>
+		</properties>
+	</rule>
+
+	<!-- Translations -->
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<!-- https://github.com/WordPress/WordPress-Coding-Standards/wiki/Customizable-sniff-properties#wordpresswpi18n-setting-your-text-domain -->
+			<property name="text_domain" type="array">
+				<element value="lipe" />
+			</property>
+		</properties>
+	</rule>
+</ruleset>

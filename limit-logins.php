@@ -1,5 +1,8 @@
 <?php
-declare(strict_types=1);
+declare( strict_types=1 );
+
+namespace Lipe\Limit_Logins;
+
 /**
  * Plugin Name: Limit Logins
  * Description: Limit rate of login attempts and block IP or username temporarily.
@@ -13,6 +16,21 @@ declare(strict_types=1);
 
 use Lipe\Limit_Logins\Settings\Limit_Logins;
 
-add_action( 'plugins_loaded', function () {
+add_action( 'plugins_loaded', function() {
+	Attempts::init();
 	Limit_Logins::init();
-});
+} );
+
+/**
+ * A namespaced function to use within this plugin.
+ *
+ * @param string $value
+ *
+ * @return string
+ */
+function sn( string $value ): string {
+	if ( function_exists( 'sn' ) ) {
+		return sn( $value );
+	}
+	return trim( sanitize_text_field( wp_unslash( $value ) ) );
+}

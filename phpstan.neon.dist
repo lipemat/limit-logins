@@ -1,0 +1,18 @@
+# @version 2.1.0
+
+includes:
+    # Include the lipemat phpstan rules.
+    - %rootDir%/../../../rules.neon
+
+parameters:
+    level: 9
+    lipemat:
+        noExtends: true
+    strictRules:
+        allRules: true
+    paths:
+        - src
+    bootstrapFiles:
+        - ../../autoload.php
+    scanFiles:
+        - %rootDir%/../../../stubs/cmb2/cmb2-2.10.php
