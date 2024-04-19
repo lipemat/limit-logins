@@ -1,0 +1,16 @@
+{
+  "name": "lipemat/limit-logins",
+  "description": "WordPress plugin to prevent brute force attacks",
+  "type": "wordpress-plugin",
+  "license": "MIT",
+  "minimum-stability": "stable",
+  "require": {
+    "lipemat/cmb2": "^2.10",
+    "php": ">=8.2"
+  },
+  "autoload": {
+    "psr-4": {
+      "Lipe\\Limit_Logins\\": "src/"
+    }
+  }
+}
