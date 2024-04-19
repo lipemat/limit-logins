@@ -1,7 +1,7 @@
 <?php
 declare( strict_types=1 );
 
-namespace Lipe\Limit_Logins\Log;
+namespace Lipe\Limit_Logins\Attempts;
 
 enum Gateway: string {
 	case WP_LOGIN = 'wp_login';

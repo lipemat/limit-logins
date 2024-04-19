@@ -3,7 +3,7 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins;
 
-use Lipe\Limit_Logins\Log\Attempt;
+use Lipe\Limit_Logins\Attempts\Attempt;
 use Lipe\Limit_Logins\Settings\Limit_Logins as Settings;
 
 /**

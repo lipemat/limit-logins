@@ -6,8 +6,8 @@ namespace Lipe\Limit_Logins\Settings;
 use Lipe\Lib\CMB2\Options_Page;
 use Lipe\Lib\Settings\Settings_Trait;
 use Lipe\Limit_Logins\Attempts;
-use Lipe\Limit_Logins\Log\Attempt;
-use Lipe\Limit_Logins\Log\Gateway;
+use Lipe\Limit_Logins\Attempts\Attempt;
+use Lipe\Limit_Logins\Attempts\Gateway;
 use Lipe\Limit_Logins\Traits\Singleton;
 
 /**
