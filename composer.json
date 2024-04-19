@@ -6,9 +6,13 @@
   "minimum-stability": "stable",
   "require": {
     "lipemat/cmb2": "^2.10",
+    "lipemat/wordpress-libs": "^4.6",
     "php": ">=8.2"
   },
   "autoload": {
+    "files": [
+      "limit-logins.php"
+    ],
     "psr-4": {
       "Lipe\\Limit_Logins\\": "src/"
     }
