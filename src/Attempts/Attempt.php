@@ -4,7 +4,7 @@ declare( strict_types=1 );
 namespace Lipe\Limit_Logins\Attempts;
 
 use Lipe\Limit_Logins\Attempts;
-use Lipe\Limit_Logins\Utils\Ip;
+use Lipe\Limit_Logins\Utils;
 
 /**
  * @author Mat Lipe
@@ -76,7 +76,7 @@ final class Attempt implements \JsonSerializable {
 	 */
 	public static function new_attempt( string $username ): self {
 		return new self(
-			Ip::in()->get_current_ip(),
+			Utils::in()->get_current_ip(),
 			$username,
 			Gateway::detect(),
 			1,

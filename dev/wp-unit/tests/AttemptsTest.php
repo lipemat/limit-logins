@@ -3,7 +3,9 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins;
 
+use Lipe\Lib\Util\Actions;
 use Lipe\Limit_Logins\Attempts\Attempt;
+use Lipe\Limit_Logins\Attempts\Gateway;
 use Lipe\Limit_Logins\Settings\Limit_Logins as Settings;
 
 /**
@@ -11,7 +13,7 @@ use Lipe\Limit_Logins\Settings\Limit_Logins as Settings;
  * @since  April 2024
  *
  */
-class AttemptsTest extends \WP_UnitTestCase {
+class AttemptsTest extends \WP_Test_REST_TestCase {
 
 	public function test_username_failure(): void {
 		$password = wp_generate_password();
@@ -131,6 +133,112 @@ class AttemptsTest extends \WP_UnitTestCase {
 		$this->assertNull( Attempts::in()->get_existing( $user->user_login ) );
 		$this->assertSame( $this->default_error( $user->user_login ), wp_authenticate( $user->user_login, 'NOT VALID PASSWORD' )->get_error_message() );
 		$this->assertSame( 1, Attempts::in()->get_existing( $user->user_login )->get_count() );
+	}
+
+
+	public function test_rest_api_failures(): void {
+		[ $user ] = $this->setup_rest_api();
+		$this->assertSame( $this->default_error( $user->user_login ), wp_authenticate( $user->user_login, 'NOT VALID PASSWORD' )->get_error_message() );
+		$this->assertCount( 1, Attempts::in()->get_all() );
+		$this->assertSame( 1, Attempts::in()->get_existing( $user->user_login )->get_count() );
+
+		$_SERVER['PHP_AUTH_PW'] = 'NOT VALID PASSWORD';
+		$this->failed_rest_request();
+		$this->assertCount( 1, Attempts::in()->get_all() );
+		$this->assertSame( 2, Attempts::in()->get_existing( $user->user_login )->get_count() );
+	}
+
+
+	public function test_rest_api_valid(): void {
+		[ $user, $pass ] = $this->setup_rest_api();
+		$_SERVER['PHP_AUTH_PW'] = $pass;
+		$this->assertNotErrorResponse( $this->get_response( '/wp/v2/users', [ 'context' => 'edit' ], 'GET' ) );
+		$this->assertCount( 0, Attempts::in()->get_all() );
+		$this->assertNull( Attempts::in()->get_existing( $user->user_login ) );
+	}
+
+
+	public function test_rest_invalid_password(): void {
+		[ $user ] = $this->setup_rest_api();
+		$_SERVER['PHP_AUTH_PW'] = 'NOT VALID PASSWORD';
+		$this->failed_rest_request();
+		$this->assertCount( 1, Attempts::in()->get_all() );
+		$this->assertSame( 1, Attempts::in()->get_existing( $user->user_login )->get_count() );
+
+		$this->assertSame( Gateway::REST_API, Attempts::in()->get_existing( $user->user_login )->gateway );
+	}
+
+
+	public function test_rest_application_passwords_disabled(): void {
+		[ $user ] = $this->setup_rest_api();
+		$_SERVER['PHP_AUTH_USER'] = $user->user_login;
+		$_SERVER['PHP_AUTH_PW'] = 'NOT VALID PASSWORD';
+		Actions::in()->add_single_filter( 'pre_site_option_using_application_passwords', '__return_null' );
+		$this->failed_rest_request();
+		$this->assertEmpty( Attempts::in()->get_all() );
+	}
+
+
+	public function test_rest_no_authentication(): void {
+		$this->setup_rest_api();
+		$this->failed_rest_request();
+		$this->assertEmpty( Attempts::in()->get_all() );
+	}
+
+
+	public function test_rest_rotating_user_accounts(): void {
+		[ $user, $app_pass ] = $this->setup_rest_api();
+
+		$_SERVER['REMOTE_ADDR'] = '41.41.41.41';
+		$_SERVER['PHP_AUTH_PW'] = 'NOT VALID PASSWORD';
+		$this->failed_rest_request();
+		$this->assertCount( 1, Attempts::in()->get_all() );
+		$this->assertSame( 1, Attempts::in()->get_existing( $user->user_login )->get_count() );
+
+		// Different user account.
+		$_SERVER['PHP_AUTH_USER'] = self::factory()->user->create_and_get()->user_login;
+		$this->failed_rest_request();
+		$this->assertCount( 1, Attempts::in()->get_all() );
+		$this->assertSame( 2, Attempts::in()->get_existing( $user->user_login )->get_count() );
+
+		// Different IP address.
+		$_SERVER['PHP_AUTH_USER'] = $user->user_login;
+		$_SERVER['REMOTE_ADDR'] = '42.42.42.42';
+		$this->failed_rest_request();
+		$this->assertCount( 2, Attempts::in()->get_all() );
+		$this->assertSame( 1, Attempts::in()->get_existing( $user->user_login )->get_count() );
+
+		// Valid password.
+		$_SERVER['PHP_AUTH_USER'] = $user->user_login;
+		$_SERVER['PHP_AUTH_PW'] = $app_pass;
+		$this->assertNotErrorResponse( $this->get_response( '/wp/v2/users', [ 'context' => 'edit' ], 'GET' ) );
+		$this->assertCount( 2, Attempts::in()->get_all() );
+		$this->assertSame( 1, Attempts::in()->get_existing( $user->user_login )->get_count() );
+	}
+
+
+	private function failed_rest_request(): void {
+		$result = $this->get_response( '/wp/v2/users', [ 'context' => 'edit' ], 'GET' );
+		$this->assertErrorResponse( 'rest_forbidden_context', $result, 401 );
+	}
+
+
+	/**
+	 * @return array{\WP_User,string}
+	 */
+	private function setup_rest_api(): array {
+		$password = wp_generate_password();
+		$user = self::factory()->user->create_and_get( [
+			'role'      => 'administrator',
+			'user_pass' => $password,
+		] );
+		$app_pass = \WP_Application_Passwords::chunk_password( \WP_Application_Passwords::create_new_application_password( $user->ID, [ 'name' => __METHOD__ ] )[0] );
+		$_SERVER['PHP_AUTH_USER'] = $user->user_login;
+
+		$this->assertNotWPError( wp_authenticate( $user->user_login, $password ) );
+		$this->assertEmpty( Attempts::in()->get_all() );
+
+		return [ $user, $app_pass ];
 	}
 
 

@@ -1,17 +1,16 @@
 <?php
 declare( strict_types=1 );
 
-namespace Lipe\Limit_Logins\Utils;
+namespace Lipe\Limit_Logins;
 
 use Lipe\Lib\Traits\Singleton;
-use function Lipe\Limit_Logins\sn;
 
 /**
  * @author Mat Lipe
  * @since  April 2024
  *
  */
-final class Ip {
+final class Utils {
 	use Singleton;
 
 	public function get_current_ip(): string {
@@ -19,5 +18,14 @@ final class Ip {
 			return sn( $_SERVER['REMOTE_ADDR'] );
 		}
 		return '0.0.0.0';
+	}
+
+
+	public function is_rest_request(): bool {
+		if ( \function_exists( 'wp_is_rest_endpoint' ) ) {
+			return wp_is_rest_endpoint();
+		}
+
+		return \defined( 'REST_REQUEST' ) && REST_REQUEST;
 	}
 }

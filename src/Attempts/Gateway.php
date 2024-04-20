@@ -3,6 +3,8 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins\Attempts;
 
+use Lipe\Limit_Logins\Utils;
+
 enum Gateway: string {
 	case REST_API = 'rest_api';
 	case WP_LOGIN = 'wp_login';
@@ -23,12 +25,7 @@ enum Gateway: string {
 			return self::XMLRPC;
 		}
 
-		if ( \function_exists( 'wp_is_rest_endpoint' ) && wp_is_rest_endpoint() ) {
-			return self::REST_API;
-		}
-
-		// @todo Remove after minimum WP version is 6.5+ as this will be covered by wp_is_rest_endpoint().
-		if ( \defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+		if ( Utils::in()->is_rest_request() ) {
 			return self::REST_API;
 		}
 

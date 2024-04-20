@@ -7,7 +7,6 @@ use Lipe\Lib\Util\Arrays;
 use Lipe\Limit_Logins\Attempts\Attempt;
 use Lipe\Limit_Logins\Settings\Limit_Logins as Settings;
 use Lipe\Limit_Logins\Traits\Singleton;
-use Lipe\Limit_Logins\Utils\Ip;
 
 /**
  * @author Mat Lipe
@@ -23,6 +22,24 @@ final class Attempts {
 
 	private function hook(): void {
 		add_action( 'wp_login_failed', [ $this, 'log_failure' ] );
+		add_action( 'application_password_failed_authentication', [ $this, 'maybe_log_application_password_failure' ] );
+	}
+
+
+	/**
+	 * During a rest request there is no call to `wp_authenticate`. Application
+	 * passwords are checked during `determine_current_user`.
+	 *
+	 * We use a random string to as the username because it is not available on
+	 * this action. If we used the same user such as "unknown", then ALL REST users
+	 * would be blocked. Using a random string allows us to block only the IP.
+	 *
+	 * @return void
+	 */
+	public function maybe_log_application_password_failure(): void {
+		if ( Utils::in()->is_rest_request() ) {
+			$this->log_failure( 'rest-' . wp_generate_password( 5 ) );
+		}
 	}
 
 
@@ -73,7 +90,7 @@ final class Attempts {
 	 * @phpstan-param list<Attempt> $attempts
 	 */
 	private function get_existing_index( array $attempts, string $username ): ?int {
-		$ip = Ip::in()->get_current_ip();
+		$ip = Utils::in()->get_current_ip();
 		$found = Arrays::in()->find_index( $attempts, fn( $attempt ) => $attempt->username === $username || $attempt->ip === $ip );
 
 		return null === $found ? null : (int) $found;
