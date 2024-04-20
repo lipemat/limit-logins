@@ -19,6 +19,7 @@ final class Authenticate {
 
 	private function hook(): void {
 		add_filter( 'authenticate', [ $this, 'authenticate' ], 50, 2 );
+		add_filter( 'xmlrpc_login_error', [ $this, 'adjust_xmlrpc_error' ], 10, 2 );
 		add_action( 'wp_authenticate_application_password_errors', [ $this, 'rest_authenticate' ], 9, 2 );
 		add_action( 'application_password_failed_authentication', [ $this, 'rest_authenticate' ], 9 );
 	}
@@ -27,7 +28,7 @@ final class Authenticate {
 	/**
 	 * @internal
 	 */
-	public function authenticate( null|\WP_User|\WP_Error $user, string $username ): \WP_User|\WP_Error {
+	public function authenticate( null|\WP_User|\WP_Error $user, string $username ): null|\WP_User|\WP_Error {
 		$existing = Attempts::in()->get_existing( $username );
 		if ( null !== $existing && $existing->is_blocked() ) {
 			return new \WP_Error( self::CODE_BLOCKED, $this->get_error() );
@@ -72,6 +73,16 @@ final class Authenticate {
 		return new \WP_Error( self::CODE_BLOCKED, 'Too many failed login attempts.', [
 			'status' => 401,
 		] );
+	}
+
+
+	public function adjust_xmlrpc_error( \IXR_Error $ixr, \WP_Error $error ): \IXR_Error {
+		if ( self::CODE_BLOCKED === $error->get_error_code() ) {
+			$ixr->message = 'Too many failed login attempts.';
+			$ixr->code = $error->get_error_code();
+		}
+
+		return $ixr;
 	}
 
 
