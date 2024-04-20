@@ -9,8 +9,11 @@ namespace Lipe\Limit_Logins;
  * Author: Mat Lipe
  * Author URI: https://onpointplugins.com
  * Version: 0.12.0
- * License: MIT
  * Text Domain: lipe
+ * License: MIT
+ * Network: false
+ * Requires at least: 6.4.0
+ * Requires PHP: 8.2.0
  * Update URI: false
  */
 
