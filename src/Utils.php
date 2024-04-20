@@ -21,6 +21,20 @@ final class Utils {
 	}
 
 
+	/**
+	 * Errors from the application passswords do not provide a username.
+	 * We use the IP with a 'rest-' designator to make easier to see in the admin.
+	 *
+	 * If we used the same user such as 'unknown', then ALL REST users
+	 * would be blocked. Using the IP string allows us to block only the IP.
+	 *
+	 * @return string
+	 */
+	public function get_rest_username(): string {
+		return 'rest-' . $this->get_current_ip();
+	}
+
+
 	public function is_rest_request(): bool {
 		if ( \function_exists( 'wp_is_rest_endpoint' ) ) {
 			return wp_is_rest_endpoint();

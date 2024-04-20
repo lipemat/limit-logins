@@ -3,8 +3,8 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins;
 
-use Lipe\Limit_Logins\Traits\Singleton;
 use Lipe\Limit_Logins\Settings\Limit_Logins as Settings;
+use Lipe\Limit_Logins\Traits\Singleton;
 
 /**
  * @author Mat Lipe
@@ -14,14 +14,19 @@ use Lipe\Limit_Logins\Settings\Limit_Logins as Settings;
 final class Authenticate {
 	use Singleton;
 
-	private const CODE_BLOCKED = 'blocked';
+	public const CODE_BLOCKED = 'blocked';
 
 
 	private function hook(): void {
 		add_filter( 'wp_authenticate_user', [ $this, 'authenticate' ], 9 );
+		add_action( 'wp_authenticate_application_password_errors', [ $this, 'rest_authenticate' ], 9, 2 );
+		add_action( 'application_password_failed_authentication', [ $this, 'rest_authenticate' ], 9 );
 	}
 
 
+	/**
+	 * @internal
+	 */
 	public function authenticate( \WP_User|\WP_Error $user ): \WP_User|\WP_Error {
 		if ( is_wp_error( $user ) ) {
 			return $user;
@@ -33,6 +38,44 @@ final class Authenticate {
 		}
 
 		return $user;
+	}
+
+
+	/**
+	 * `wp_authenticate_user` is not called during REST requests.
+	 *
+	 * Using the actions called during `determine_current_user`.
+	 *
+	 * @internal
+	 */
+	public function rest_authenticate( \WP_Error $error, ?\WP_User $user = null ): void {
+		if ( ! Utils::in()->is_rest_request() ) {
+			return;
+		}
+		$username = $user->user_login ?? Utils::in()->get_rest_username();
+		$existing = Attempts::in()->get_existing( $username );
+		if ( null !== $existing && $existing->is_blocked() ) {
+			add_filter( 'rest_request_after_callbacks', [ $this, 'get_rest_blocked_error' ], 100 );
+		}
+	}
+
+
+	/**
+	 * Converts all REST requests with authentication that are blocked to a WP_Error.
+	 *
+	 * The default REST handlers are likely already returning an error, but it is not
+	 * our "too many failed login attempts" error. Sending our custom error prevents
+	 * the attacker from getting any more information.
+	 *
+	 * @note Always use code `401` to say the authentication failed even if it passed.
+	 * @see  rest_authorization_required_code
+	 *
+	 * @internal
+	 */
+	public function get_rest_blocked_error(): \WP_Error {
+		return new \WP_Error( self::CODE_BLOCKED, 'Too many failed login attempts.', [
+			'status' => 401,
+		] );
 	}
 
 

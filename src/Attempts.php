@@ -38,7 +38,7 @@ final class Attempts {
 	 */
 	public function maybe_log_application_password_failure(): void {
 		if ( Utils::in()->is_rest_request() ) {
-			$this->log_failure( 'rest-' . wp_generate_password( 5 ) );
+			$this->log_failure( Utils::in()->get_rest_username() );
 		}
 	}
 

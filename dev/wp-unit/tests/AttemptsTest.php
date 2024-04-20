@@ -170,9 +170,6 @@ class AttemptsTest extends \WP_Test_REST_TestCase {
 
 
 	public function test_rest_application_passwords_disabled(): void {
-		[ $user ] = $this->setup_rest_api();
-		$_SERVER['PHP_AUTH_USER'] = $user->user_login;
-		$_SERVER['PHP_AUTH_PW'] = 'NOT VALID PASSWORD';
 		Actions::in()->add_single_filter( 'pre_site_option_using_application_passwords', '__return_null' );
 		$this->failed_rest_request();
 		$this->assertEmpty( Attempts::in()->get_all() );
@@ -181,6 +178,7 @@ class AttemptsTest extends \WP_Test_REST_TestCase {
 
 	public function test_rest_no_authentication(): void {
 		$this->setup_rest_api();
+		unset( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'] );
 		$this->failed_rest_request();
 		$this->assertEmpty( Attempts::in()->get_all() );
 	}
@@ -217,6 +215,31 @@ class AttemptsTest extends \WP_Test_REST_TestCase {
 	}
 
 
+	public function test_rest_lockouts(): void {
+		[ $user, $app_pass ] = $this->setup_rest_api();
+		$_SERVER['PHP_AUTH_PW'] = 'NOT VALID PASSWORD';
+		for ( $i = 0; $i < Attempts::ALLOWED_ATTEMPTS; $i ++ ) {
+			$this->failed_rest_request();
+		}
+		$this->assertCount( 1, Attempts::in()->get_all() );
+		$this->assertSame( Attempts::ALLOWED_ATTEMPTS, Attempts::in()->get_existing( $user->user_login )->get_count() );
+
+		$this->assertSame( $this->too_many_error(), wp_authenticate( $user->user_login, 'NOT VALID PASSWORD' )->get_error_message() );
+
+		$result = $this->get_response( '/wp/v2/users', [ 'context' => 'edit' ], 'GET' );
+		$this->assertSame( 'Too many failed login attempts.', $result->get_data()['message'] );
+		$this->assertErrorResponse( Authenticate::CODE_BLOCKED, $result, 401 );
+		$this->assertSame( Attempts::ALLOWED_ATTEMPTS, Attempts::in()->get_existing( $user->user_login )->get_count() );
+
+		// valid password.
+		$_SERVER['PHP_AUTH_PW'] = $app_pass;
+		$result = $this->get_response( '/wp/v2/users', [ 'context' => 'edit' ], 'GET' );
+		$this->assertErrorResponse( Authenticate::CODE_BLOCKED, $result, 401 );
+		$this->assertSame( 'Too many failed login attempts.', $result->get_data()['message'] );
+		$this->assertSame( Attempts::ALLOWED_ATTEMPTS, Attempts::in()->get_existing( $user->user_login )->get_count() );
+	}
+
+
 	private function failed_rest_request(): void {
 		$result = $this->get_response( '/wp/v2/users', [ 'context' => 'edit' ], 'GET' );
 		$this->assertErrorResponse( 'rest_forbidden_context', $result, 401 );
@@ -234,6 +257,7 @@ class AttemptsTest extends \WP_Test_REST_TestCase {
 		] );
 		$app_pass = \WP_Application_Passwords::chunk_password( \WP_Application_Passwords::create_new_application_password( $user->ID, [ 'name' => __METHOD__ ] )[0] );
 		$_SERVER['PHP_AUTH_USER'] = $user->user_login;
+		$_SERVER['PHP_AUTH_PW'] = $app_pass;
 
 		$this->assertNotWPError( wp_authenticate( $user->user_login, $password ) );
 		$this->assertEmpty( Attempts::in()->get_all() );
