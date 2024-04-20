@@ -18,7 +18,7 @@ final class Authenticate {
 
 
 	private function hook(): void {
-		add_filter( 'wp_authenticate_user', [ $this, 'authenticate' ], 9 );
+		add_filter( 'authenticate', [ $this, 'authenticate' ], 50, 2 );
 		add_action( 'wp_authenticate_application_password_errors', [ $this, 'rest_authenticate' ], 9, 2 );
 		add_action( 'application_password_failed_authentication', [ $this, 'rest_authenticate' ], 9 );
 	}
@@ -27,12 +27,8 @@ final class Authenticate {
 	/**
 	 * @internal
 	 */
-	public function authenticate( \WP_User|\WP_Error $user ): \WP_User|\WP_Error {
-		if ( is_wp_error( $user ) ) {
-			return $user;
-		}
-
-		$existing = Attempts::in()->get_existing( $user->user_login );
+	public function authenticate( null|\WP_User|\WP_Error $user, string $username ): \WP_User|\WP_Error {
+		$existing = Attempts::in()->get_existing( $username );
 		if ( null !== $existing && $existing->is_blocked() ) {
 			return new \WP_Error( self::CODE_BLOCKED, $this->get_error() );
 		}
