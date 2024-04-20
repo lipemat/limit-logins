@@ -5,7 +5,7 @@
   "license": "MIT",
   "minimum-stability": "stable",
   "require": {
-    "lipemat/cmb2": "^2.10",
+    "lipemat/cmb2": "^2.10.1.11",
     "lipemat/wordpress-libs": "*",
     "php": ">=8.2"
   },
