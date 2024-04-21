@@ -8,7 +8,7 @@ namespace Lipe\Limit_Logins;
  * Description: Limit rate of login attempts and block IP or username temporarily.
  * Author: Mat Lipe
  * Author URI: https://onpointplugins.com
- * Version: 0.14.1
+ * Version: 0.14.2
  * Text Domain: lipe
  * License: MIT
  * Network: false
