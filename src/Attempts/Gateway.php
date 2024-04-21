@@ -6,14 +6,15 @@ namespace Lipe\Limit_Logins\Attempts;
 use Lipe\Limit_Logins\Utils;
 
 enum Gateway: string {
-	case REST_API = 'rest_api';
-	case WP_LOGIN = 'wp_login';
-	case WOO_LOGIN = 'woo_login';
-	case XMLRPC = 'xmlrpc';
+	case REST_API  = 'rest-api';
+	case WP_LOGIN  = 'wp-login';
+	case WOO_LOGIN = 'woo-login';
+	case XMLRPC    = 'xmlrpc';
 
 
 	public static function detect(): self {
-		if ( isset( $_POST['woocommerce-login-nonce'] ) ) { //phpcs:ignore WordPress.Security.NonceVerification
+		//phpcs:ignore WordPress.Security.NonceVerification
+		if ( isset( $_REQUEST['woocommerce-login-nonce'] ) ) {
 			return self::WOO_LOGIN;
 		}
 

@@ -39,7 +39,7 @@ class GatewayTest extends \WP_UnitTestCase {
 
 
 	public function test_detect_woo_login(): void {
-		$_POST['woocommerce-login-nonce'] = 'nonce';
+		$_REQUEST['woocommerce-login-nonce'] = 'nonce';
 		$gateway = Gateway::detect();
 		$this->assertSame( Gateway::WOO_LOGIN, $gateway );
 
