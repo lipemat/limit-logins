@@ -39,7 +39,7 @@ final class Limit_Logins implements \ArrayAccess {
 
 
 	private function hook(): void {
-		add_action( 'cmb2_admin_init', function() {
+		add_action( 'cmb2_init', function() {
 			$this->register();
 		} );
 	}
@@ -74,6 +74,19 @@ final class Limit_Logins implements \ArrayAccess {
 		$group->field( Attempt::COUNT, 'Count' )
 		      ->text_number( 1, 0, Attempts::ALLOWED_ATTEMPTS );
 		$group->field( Attempt::EXPIRES, 'Expires' )->text_datetime_timestamp();
+
+		if ( $this->get_option( self::CLEAR, false ) ) {
+			$box->field( self::CLEAR, 'Legacy Data' )
+			    ->title()
+			    ->description( 'Limit Login Attempts Reloaded data has been cleaned up.' );
+		} else {
+			$box->field( self::CLEAR, 'Limit Login Attempts Data' )
+			    ->checkbox()
+			    ->description( 'Check and save to clear dangling settings from the Limit Login Attempts Reloaded plugin.' )
+			    ->change_cb( function() {
+				    $this->clear_limit_login_attempts_options();
+			    } );
+		}
 	}
 
 
@@ -83,5 +96,22 @@ final class Limit_Logins implements \ArrayAccess {
 	public function get_gateway_options(): array {
 		$gateways = \array_map( fn( $gateway ) => $gateway->value, Gateway::cases() );
 		return \array_combine( $gateways, $gateways );
+	}
+
+
+	/**
+	 * Clear out the options left over from the Limit Login Atttempt Reloaded plugin.
+	 *
+	 * May only be run once by checking the box then saving the fields.
+	 * After that, the field will display as a message that the data has been cleaned up.
+	 *
+	 * @throws \ErrorException
+	 */
+	private function clear_limit_login_attempts_options(): void {
+		global $wpdb;
+		$query = $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", 'limit_login_%' );
+		if ( false === $wpdb->query( $query ) ) {
+			throw new \ErrorException( 'Failed to clear limit login attempt options.' );
+		}
 	}
 }
