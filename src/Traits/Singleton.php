@@ -3,6 +3,13 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins\Traits;
 
+use Lipe\Limit_Logins\Attempts;
+use Lipe\Limit_Logins\Authenticate;
+use Lipe\Limit_Logins\Authenticate\Reset_Password;
+use Lipe\Limit_Logins\Authenticate\Rest;
+use Lipe\Limit_Logins\Authenticate\Xmlrpc;
+use Lipe\Limit_Logins\Settings\Limit_Logins;
+
 /**
  * @author Mat Lipe
  * @since  April 2024
@@ -55,9 +62,9 @@ trait Singleton {
 	/**
 	 * Return the instance of this class.
 	 *
-	 * @return self
+	 * @return static
 	 */
-	public static function in() {
+	public static function in(): static {
 		if ( ! is_a( static::$instance, __CLASS__ ) ) {
 			static::$instance = new static();
 		}

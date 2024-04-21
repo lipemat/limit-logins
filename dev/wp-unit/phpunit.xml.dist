@@ -24,6 +24,7 @@
 	</testsuites>
 	<source>
 		<include>
+			<file>../../limit-logins.php</file>
 			<directory>../../src</directory>
 		</include>
 	</source>
