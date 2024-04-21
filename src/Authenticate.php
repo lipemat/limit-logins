@@ -18,7 +18,7 @@ final class Authenticate {
 
 
 	private function hook(): void {
-		add_filter( 'authenticate', [ $this, 'authenticate' ], 50, 2 );
+		add_filter( 'authenticate', [ $this, 'authenticate' ], 1_000, 2 );
 	}
 
 
