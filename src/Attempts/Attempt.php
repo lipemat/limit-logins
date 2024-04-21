@@ -14,8 +14,8 @@ use Lipe\Limit_Logins\Utils;
  *     ip: string,
  *     username: string,
  *     gateway: string,
- *     count: int,
- *     expires: int
+ *     count: int|string,
+ *     expires: int|string
  * }
  */
 final class Attempt implements \JsonSerializable {
@@ -93,8 +93,8 @@ final class Attempt implements \JsonSerializable {
 			$data[ self::IP ],
 			$data[ self::USERNAME ],
 			Gateway::from( $data[ self::GATEWAY ] ),
-			$data[ self::COUNT ],
-			$data[ self::EXPIRES ]
+			(int) $data[ self::COUNT ],
+			(int) $data[ self::EXPIRES ]
 		);
 	}
 }

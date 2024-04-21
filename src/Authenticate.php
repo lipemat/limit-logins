@@ -37,7 +37,7 @@ final class Authenticate {
 
 	private function get_error(): string {
 		$contact = Settings::in()->get_option( Settings::CONTACT, '' );
-		if ( ! \is_string( $contact ) || '' === $contact ) {
+		if ( '' === $contact ) {
 			return '<strong>ERROR:</strong> Too many failed login attempts.';
 		}
 

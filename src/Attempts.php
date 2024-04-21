@@ -7,6 +7,7 @@ use Lipe\Lib\Util\Arrays;
 use Lipe\Limit_Logins\Attempts\Attempt;
 use Lipe\Limit_Logins\Settings\Limit_Logins as Settings;
 use Lipe\Limit_Logins\Traits\Singleton;
+use function PHPStan\dumpType;
 
 /**
  * @author Mat Lipe
@@ -77,7 +78,7 @@ final class Attempts {
 		$existing = Arrays::in()->find_index( $attempts, fn( $attempt ) => $attempt->username === $username );
 		if ( null !== $existing ) {
 			unset( $attempts[ $existing ] );
-			Settings::in()->update_option( Settings::LOGGED_FAILURES, \array_map( fn( $attempt ) => $attempt->jsonSerialize(), $attempts ) );
+			Settings::in()->update_option( Settings::LOGGED_FAILURES, \array_map( fn( $attempt ) => $attempt->jsonSerialize(), \array_values( $attempts ) ) );
 		}
 	}
 
@@ -86,7 +87,8 @@ final class Attempts {
 	 * @return list<Attempt>
 	 */
 	public function get_all(): array {
-		return \array_map( [ Attempt::class, 'factory' ], Settings::in()->get_logs() );
+		$attempts = Settings::in()->get_option( Settings::LOGGED_FAILURES, [] );
+		return \array_map( [ Attempt::class, 'factory' ], $attempts );
 	}
 
 
@@ -95,7 +97,7 @@ final class Attempts {
 	 * @return list<Attempt>
 	 */
 	private function clear_expired( array $attempts ): array {
-		return \array_filter( $attempts, fn( $attempt ) => ! $attempt->is_expired() );
+		return \array_values( \array_filter( $attempts, fn( $attempt ) => ! $attempt->is_expired() ) );
 	}
 
 

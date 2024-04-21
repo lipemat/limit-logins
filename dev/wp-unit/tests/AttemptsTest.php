@@ -126,7 +126,7 @@ class AttemptsTest extends \WP_Test_REST_TestCase {
 		// Set the expiration to 1 second ago.
 		$this->assertSame( Attempts::ALLOWED_ATTEMPTS, Attempts::in()->get_existing( $user->user_login )->get_count() );
 		$data['expires'] = (int) gmdate( 'U' ) - 1;
-		Settings::in()->update_option( Settings::LOGGED_FAILURES, wp_json_encode( [ $data ] ) );
+		Settings::in()->update_option( Settings::LOGGED_FAILURES, [ $data ] );
 		$this->assertNotWPError( wp_authenticate( $user->user_login, $password ) );
 
 		// Clears out old attempts during the next failure.
