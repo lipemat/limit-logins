@@ -109,8 +109,7 @@ final class Limit_Logins implements \ArrayAccess {
 	 */
 	private function clear_limit_login_attempts_options(): void {
 		global $wpdb;
-		$query = $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", 'limit_login_%' );
-		if ( false === $wpdb->query( $query ) ) {
+		if ( false === $wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", 'limit_login_%' ) ) ) {
 			throw new \ErrorException( 'Failed to clear limit login attempt options.' );
 		}
 	}
