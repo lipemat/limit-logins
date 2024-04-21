@@ -42,4 +42,13 @@ final class Utils {
 
 		return \defined( 'REST_REQUEST' ) && REST_REQUEST;
 	}
+
+
+	public function is_xmlrpc_request(): bool {
+		if ( \defined( 'XMLRPC_REQUEST' ) && XMLRPC_REQUEST ) {
+			return true;
+		}
+
+		return isset( $GLOBALS['wp_xmlrpc_server'] ) && $GLOBALS['wp_xmlrpc_server'] instanceof \IXR_Server;
+	}
 }

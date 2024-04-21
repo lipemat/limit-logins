@@ -17,11 +17,7 @@ enum Gateway: string {
 			return self::WOO_LOGIN;
 		}
 
-		if ( \defined( 'XMLRPC_REQUEST' ) && XMLRPC_REQUEST ) {
-			return self::XMLRPC;
-		}
-
-		if ( isset( $GLOBALS['wp_xmlrpc_server'] ) && $GLOBALS['wp_xmlrpc_server'] instanceof \IXR_Server ) {
+		if ( Utils::in()->is_xmlrpc_request() ) {
 			return self::XMLRPC;
 		}
 
