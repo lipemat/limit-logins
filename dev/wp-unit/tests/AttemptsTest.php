@@ -136,6 +136,33 @@ class AttemptsTest extends \WP_Test_REST_TestCase {
 	}
 
 
+	public function test_remove_block(): void {
+		/** @var \Fixture_Blocked_User $user_1 */
+		$user_1 = require dirname( __DIR__ ) . '/fixtures/blocked-user.php';
+
+		$_SERVER['REMOTE_ADDR'] = '32.32.32.32';
+		/** @var \Fixture_Blocked_User $user_2 */
+		$user_2 = require dirname( __DIR__ ) . '/fixtures/blocked-user.php';
+
+		$this->assertCount( 2, Attempts::in()->get_all() );
+
+		Attempts::in()->remove_block( $user_1->user->user_login );
+		$this->assertCount( 1, Attempts::in()->get_all() );
+		$this->assertSame( $user_2->user->user_login, Attempts::in()->get_existing( $user_2->user->user_login )->username );
+
+		Attempts::in()->remove_block( $user_2->user->user_login );
+		$this->assertEmpty( Attempts::in()->get_all() );
+
+		/** @var \Fixture_Blocked_User $user_3 */
+		$user_3 = require dirname( __DIR__ ) . '/fixtures/blocked-user.php';
+		$this->assertCount( 1, Attempts::in()->get_all() );
+		Attempts::in()->remove_block( 'use IP to map to user' );
+		$this->assertCount( 1, Attempts::in()->get_all() );
+		Attempts::in()->remove_block( $user_3->user->user_login );
+		$this->assertEmpty( Attempts::in()->get_all() );
+	}
+
+
 	private function defaultError( string $username ): string {
 		return '<strong>Error:</strong> The password you entered for the username <strong>' . $username . '</strong> is incorrect. <a href="http://limit-logins.loc/wp-login.php?action=lostpassword">Lost your password?</a>';
 	}

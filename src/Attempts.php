@@ -68,6 +68,21 @@ final class Attempts {
 
 
 	/**
+	 * Remove a block for a given username.
+	 *
+	 * Does not match the IP, just the username.
+	 */
+	public function remove_block( string $username ): void {
+		$attempts = $this->get_all();
+		$existing = Arrays::in()->find_index( $attempts, fn( $attempt ) => $attempt->username === $username );
+		if ( null !== $existing ) {
+			unset( $attempts[ $existing ] );
+			Settings::in()->update_option( Settings::LOGGED_FAILURES, \array_map( fn( $attempt ) => $attempt->jsonSerialize(), $attempts ) );
+		}
+	}
+
+
+	/**
 	 * @return list<Attempt>
 	 */
 	public function get_all(): array {
