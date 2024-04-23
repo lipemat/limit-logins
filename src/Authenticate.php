@@ -3,7 +3,6 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins;
 
-use Lipe\Limit_Logins\Settings\Limit_Logins as Settings;
 use Lipe\Limit_Logins\Traits\Singleton;
 
 /**

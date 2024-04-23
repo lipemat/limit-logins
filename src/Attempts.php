@@ -5,9 +5,7 @@ namespace Lipe\Limit_Logins;
 
 use Lipe\Lib\Util\Arrays;
 use Lipe\Limit_Logins\Attempts\Attempt;
-use Lipe\Limit_Logins\Settings\Limit_Logins as Settings;
 use Lipe\Limit_Logins\Traits\Singleton;
-use function PHPStan\dumpType;
 
 /**
  * @author Mat Lipe

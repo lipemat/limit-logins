@@ -1,11 +1,10 @@
 <?php
 declare( strict_types=1 );
 
-namespace Lipe\Limit_Logins\Settings;
+namespace Lipe\Limit_Logins;
 
 use Lipe\Lib\CMB2\Options_Page;
 use Lipe\Lib\Settings\Settings_Trait;
-use Lipe\Limit_Logins\Attempts;
 use Lipe\Limit_Logins\Attempts\Attempt;
 use Lipe\Limit_Logins\Attempts\Gateway;
 use Lipe\Limit_Logins\Traits\Singleton;
@@ -24,7 +23,7 @@ use Lipe\Limit_Logins\Traits\Singleton;
  *
  * @implements \ArrayAccess<self::*, value-of<KEYS>>
  */
-final class Limit_Logins implements \ArrayAccess {
+final class Settings implements \ArrayAccess {
 	/**
 	 * @use Settings_Trait<KEYS>
 	 */

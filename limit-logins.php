@@ -20,12 +20,11 @@ namespace Lipe\Limit_Logins;
 use Lipe\Limit_Logins\Authenticate\Reset_Password;
 use Lipe\Limit_Logins\Authenticate\Rest;
 use Lipe\Limit_Logins\Authenticate\Xmlrpc;
-use Lipe\Limit_Logins\Settings\Limit_Logins;
 
 add_action( 'plugins_loaded', function() {
 	Attempts::init();
 	Authenticate::init();
-	Limit_Logins::init();
+	Settings::init();
 	Reset_Password::init();
 	Rest::init();
 	Xmlrpc::init();

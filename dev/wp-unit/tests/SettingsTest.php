@@ -1,18 +1,16 @@
 <?php
 declare( strict_types=1 );
 
-namespace Lipe\Limit_Logins\Settings;
+namespace Lipe\Limit_Logins;
 
 use Lipe\Lib\Meta\Repo;
-use Lipe\Limit_Logins\Attempts;
-use Lipe\Limit_Logins\Authenticate;
 
 /**
  * @author Mat Lipe
  * @since  April 2024
  *
  */
-class Limit_LoginsTest extends \WP_UnitTestCase {
+class SettingsTest extends \WP_UnitTestCase {
 	public function test_contact_field(): void {
 		$user = self::factory()->user->create_and_get();
 		for ( $i = 0; $i < Attempts::ALLOWED_ATTEMPTS; $i ++ ) {
@@ -24,7 +22,7 @@ class Limit_LoginsTest extends \WP_UnitTestCase {
 		$this->assertSame( $this->tooManyError(), $error );
 		$this->assertStringNotContainsString( 'contact form', $error );
 
-		Limit_Logins::in()->update_option( Limit_Logins::CONTACT, 'https://contact.form' );
+		Settings::in()->update_option( Settings::CONTACT, 'https://contact.form' );
 
 		$error = wp_authenticate( $user->user_login, 'NOT VALID PASSWORD' )->get_error_message();
 		$this->assertSame( $this->tooManyError(), $error );
@@ -39,12 +37,12 @@ class Limit_LoginsTest extends \WP_UnitTestCase {
 			$this->assertNotFalse( get_option( $option['option_name'] ) );
 		}
 		$global_count = $wpdb->get_var( 'SELECT COUNT(*) from ' . $wpdb->options );
-		$this->assertSame( 'checkbox', call_private_method( Repo::in(), 'get_field', [ Limit_Logins::CLEAR ] )->get_type() );
+		$this->assertSame( 'checkbox', call_private_method( Repo::in(), 'get_field', [ Settings::CLEAR ] )->get_type() );
 
 		$find_query = $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->options} WHERE option_name LIKE %s", 'limit_login_%' );
 		$this->assertSame( 24, (int) $wpdb->get_var( $find_query ) );
 
-		Limit_Logins::in()->update_option( Limit_Logins::CLEAR, true );
+		Settings::in()->update_option( Settings::CLEAR, true );
 		wp_cache_flush();
 		// One option was added when CLEAR is set.
 		$this->assertSame( ( $global_count + 1 ) - 24, (int) $wpdb->get_var( 'SELECT COUNT(*) from ' . $wpdb->options ) );
@@ -54,7 +52,7 @@ class Limit_LoginsTest extends \WP_UnitTestCase {
 		}
 
 		do_action( 'cmb2_init' );
-		$this->assertSame( 'title', call_private_method( Repo::in(), 'get_field', [ Limit_Logins::CLEAR ] )->get_type() );
+		$this->assertSame( 'title', call_private_method( Repo::in(), 'get_field', [ Settings::CLEAR ] )->get_type() );
 	}
 
 

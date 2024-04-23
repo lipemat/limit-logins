@@ -3,10 +3,8 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins;
 
-use Lipe\Lib\Util\Actions;
 use Lipe\Limit_Logins\Attempts\Attempt;
-use Lipe\Limit_Logins\Attempts\Gateway;
-use Lipe\Limit_Logins\Settings\Limit_Logins as Settings;
+use Lipe\Limit_Logins\Settings as Settings;
 
 /**
  * @author Mat Lipe

@@ -3,13 +3,6 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins\Traits;
 
-use Lipe\Limit_Logins\Attempts;
-use Lipe\Limit_Logins\Authenticate;
-use Lipe\Limit_Logins\Authenticate\Reset_Password;
-use Lipe\Limit_Logins\Authenticate\Rest;
-use Lipe\Limit_Logins\Authenticate\Xmlrpc;
-use Lipe\Limit_Logins\Settings\Limit_Logins;
-
 /**
  * @author Mat Lipe
  * @since  April 2024
