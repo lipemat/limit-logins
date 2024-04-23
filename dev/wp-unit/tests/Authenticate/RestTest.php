@@ -118,6 +118,12 @@ class RestTest extends \WP_Test_REST_TestCase {
 	}
 
 
+	protected function get_response( string $route, array $args, string $method = 'POST' ): \WP_REST_Response {
+		$GLOBALS['current_user'] = null;
+		return parent::get_response( $route, $args, $method );
+	}
+
+
 	private function failedRestRequest(): void {
 		$result = $this->get_response( '/wp/v2/users', [ 'context' => 'edit' ], 'GET' );
 		$this->assertErrorResponse( 'rest_forbidden_context', $result, 401 );
