@@ -3,15 +3,14 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins;
 
-use Lipe\Lib\Traits\Singleton;
-
 /**
  * @author Mat Lipe
  * @since  April 2024
  *
  */
 final class Utils {
-	use Singleton;
+	public bool $did_exit = false;
+
 
 	public function get_current_ip(): string {
 		if ( isset( $_SERVER['REMOTE_ADDR'] ) && false !== \WP_Http::is_ip_address( sn( $_SERVER['REMOTE_ADDR'] ) ) ) {
@@ -50,5 +49,22 @@ final class Utils {
 		}
 
 		return isset( $GLOBALS['wp_xmlrpc_server'] ) && $GLOBALS['wp_xmlrpc_server'] instanceof \IXR_Server;
+	}
+
+
+	/**
+	 * @phpstan-return  never
+	 */
+	public function exit(): void {
+		if ( \defined( 'WP_UNIT_DIR' ) ) {
+			$this->did_exit = true;
+			return;
+		}
+		exit;
+	}
+
+
+	public static function in(): Utils {
+		return container()->get( __CLASS__ );
 	}
 }

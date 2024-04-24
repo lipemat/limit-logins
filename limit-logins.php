@@ -44,3 +44,12 @@ add_action( 'plugins_loaded', function() {
 function sn( string $value ): string {
 	return trim( sanitize_text_field( wp_unslash( $value ) ) );
 }
+
+/**
+ * Return the container.
+ *
+ * @return Container
+ */
+function container(): Container {
+	return Container::instance();
+}
