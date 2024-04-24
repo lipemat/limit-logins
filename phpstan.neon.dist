@@ -5,7 +5,7 @@ includes:
     - %rootDir%/../../../rules.neon
 
 parameters:
-    level: 9
+    level: 8
     lipemat:
         noExtends: true
     strictRules:

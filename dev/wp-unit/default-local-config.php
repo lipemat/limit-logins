@@ -19,7 +19,7 @@ define( 'DOMAIN_CURRENT_SITE', 'limit-logins.loc' );
 define( 'WP_SITE_ROOT', $root . DIRECTORY_SEPARATOR );
 define( 'WP_TESTS_DOMAIN', 'limit-logins.loc' );
 define( 'WP_TESTS_EMAIL', 'unit-tests@test.com' );
-define( 'WP_TESTS_TITLE', 'WP Libs unit tests' );
+define( 'WP_TESTS_TITLE', 'Limit Login Tests' );
 define( 'WP_UNIT_DIR', 'E:/SVN/wp-unit' );
 
 define( 'ABSPATH', WP_SITE_ROOT . '/wp/' );

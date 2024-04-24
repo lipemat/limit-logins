@@ -18,6 +18,7 @@ use Lipe\Limit_Logins\Traits\Singleton;
  * @phpstan-type KEYS array{
  *     'lipe/limit-logins/settings/limit-logins/clear': bool,
  *     'lipe/limit-logins/settings/limit-logins/contact': string,
+ *     'lipe/limit-logins/settings/limit-logins/email': string,
  *     'lipe/limit-logins/settings/limit-logins/logged-failures': list<DATA>
  * }
  *
@@ -34,6 +35,7 @@ final class Settings implements \ArrayAccess {
 
 	public const CLEAR           = 'lipe/limit-logins/settings/limit-logins/clear';
 	public const CONTACT         = 'lipe/limit-logins/settings/limit-logins/contact';
+	public const EMAIL           = 'lipe/limit-logins/settings/limit-logins/email';
 	public const LOGGED_FAILURES = 'lipe/limit-logins/settings/limit-logins/logged-failures';
 
 
@@ -50,7 +52,10 @@ final class Settings implements \ArrayAccess {
 
 		$box->field( self::CONTACT, 'Contact Page' )
 		    ->text_url()
-		    ->description( 'Link will display in error message if set.' );
+		    ->description( 'Link in include in blocked emails.' );
+		$box->field( self::EMAIL, 'Sender Email' )
+		    ->text_email()
+		    ->description( 'Email to send blocked notifications from which must be able to recieve replies.' );
 
 		$group = $box->group( self::LOGGED_FAILURES, 'Logged Failures' );
 		// Hide the up and down buttons to keep rows short.
@@ -72,7 +77,10 @@ final class Settings implements \ArrayAccess {
 		      ->select( [ $this, 'get_gateway_options' ] );
 		$group->field( Attempt::COUNT, 'Count' )
 		      ->text_number( 1, 0, Attempts::ALLOWED_ATTEMPTS );
-		$group->field( Attempt::EXPIRES, 'Expires' )->text_datetime_timestamp();
+		$group->field( Attempt::EXPIRES, 'Expires' )
+		      ->text_datetime_timestamp();
+		$group->field( Attempt::KEY, 'Unlock Key' )
+		      ->hidden();
 
 		if ( $this->get_option( self::CLEAR, false ) ) {
 			$box->field( self::CLEAR, 'Legacy Data' )

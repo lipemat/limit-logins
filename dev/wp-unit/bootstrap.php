@@ -1,4 +1,7 @@
 <?php
+
+use Lipe\Limit_Logins\Authenticate\Unlock_Link;
+
 require __DIR__ . '/helpers.php';
 require __DIR__ . '/wp-tests-config.php';
 
@@ -12,6 +15,9 @@ tests_add_filter( 'plugins_loaded', function() {
 	if ( is_readable( dirname( __DIR__, 4 ) . '/autoload.php' ) ) {
 		require_once dirname( __DIR__, 4 ) . '/autoload.php';
 	}
+
+	// Allow extending final classes.
+	allow_extending_final( Unlock_Link::class );
 }, 1 );
 
 // Load the WP-Unit environment.

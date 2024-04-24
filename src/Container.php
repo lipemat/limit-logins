@@ -50,7 +50,7 @@ final class Container {
 
 
 	public static function instance(): self {
-		if ( ! self::$core_instance ) {
+		if ( null === self::$core_instance ) {
 			self::$core_instance = new self( new \Pimple\Container( [] ) );
 		}
 

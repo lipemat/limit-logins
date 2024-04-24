@@ -11,10 +11,14 @@ use Lipe\Limit_Logins\Attempts\Attempt;
  *
  */
 final class Blocked implements Email {
+	private static Blocked $current;
+
+
 	private function __construct(
-		private readonly Attempt $attempt,
-		private readonly string $key
+		public readonly Attempt $attempt,
+		public readonly string $key
 	) {
+		self::$current = $this;
 	}
 
 
@@ -33,12 +37,17 @@ final class Blocked implements Email {
 
 
 	public function get_subject(): string {
-		return \sprintf( 'Your %s account has been blocked.', get_bloginfo( 'name' ) );
+		return \sprintf( 'Your %s account has been locked.', get_bloginfo( 'name' ) );
 	}
 
 
 	public function get_message(): string {
 		return Util::in()->get_template( 'blocked' );
+	}
+
+
+	public static function get_current(): ?Blocked {
+		return self::$current ?? null;
 	}
 
 

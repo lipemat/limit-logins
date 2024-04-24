@@ -12,7 +12,7 @@ if ( ! defined( 'DOMAIN_CURRENT_SITE' ) ) {
 
 $config_defaults = [
 	// Must be first.
-	'WP_SITE_ROOT'              => getenv( 'WP_SITE_ROOT' ),
+	'WP_SITE_ROOT' => getenv( 'WP_SITE_ROOT' ),
 
 	'ABSPATH'                   => WP_SITE_ROOT,
 	'BLOG_ID_CURRENT_SITE'      => 1,
@@ -30,6 +30,7 @@ $config_defaults = [
 	'WP_TESTS_DIR'              => WP_SITE_ROOT,
 	'WP_TESTS_DOMAIN'           => getenv( 'HTTP_HOST' ),
 	'WP_TESTS_MULTISITE'        => true,
+	'WP_TESTS_SNAPSHOTS_DIR'    => __DIR__ . '/__snapshots__',
 	'WP_TESTS_TABLE_PREFIX'     => 'wplibs_',
 	'WP_UNIT_DIR'               => getenv( 'WP_UNIT_DIR' ),
 ];

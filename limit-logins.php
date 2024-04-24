@@ -46,6 +46,20 @@ function sn( string $value ): string {
 }
 
 /**
+ * A namespaced function to use within this plugin.
+ *
+ * @param string|int|float|\Stringable|\BackedEnum $value
+ *
+ * @return string
+ */
+function es( $value ): string {
+	if ( $value instanceof \BackedEnum ) {
+		return (string) $value->value;
+	}
+	return (string) $value;
+}
+
+/**
  * Return the container.
  *
  * @return Container

@@ -58,13 +58,13 @@ final class Utils {
 	public function exit(): void {
 		if ( \defined( 'WP_UNIT_DIR' ) ) {
 			$this->did_exit = true;
-			return;
+			throw new \OutOfBoundsException( 'Exit called in test context' );
 		}
 		exit;
 	}
 
 
 	public static function in(): Utils {
-		return container()->get( __CLASS__ );
+		return container()->get( 'email.util' );
 	}
 }
