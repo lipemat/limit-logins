@@ -15,7 +15,8 @@ use Lipe\Limit_Logins\Utils;
  *     username: string,
  *     gateway: string,
  *     count: int|string,
- *     expires: int|string
+ *     expires: int|string,
+ *     key?: string
  * }
  */
 final class Attempt implements \JsonSerializable {
@@ -24,6 +25,7 @@ final class Attempt implements \JsonSerializable {
 	public const GATEWAY  = 'gateway';
 	public const COUNT    = 'count';
 	public const EXPIRES  = 'expires';
+	public const KEY      = 'key';
 
 
 	private function __construct(
@@ -31,13 +33,24 @@ final class Attempt implements \JsonSerializable {
 		public readonly string $username,
 		public readonly Gateway $gateway,
 		private int $count,
-		public readonly int $expires
+		public readonly int $expires,
+		private string $key
 	) {
 	}
 
 
 	public function get_count(): int {
 		return $this->count;
+	}
+
+
+	public function get_key(): string {
+		return $this->key;
+	}
+
+
+	public function set_key( string $key ): void {
+		$this->key = $key;
 	}
 
 
@@ -66,6 +79,7 @@ final class Attempt implements \JsonSerializable {
 			self::GATEWAY  => $this->gateway->value,
 			self::COUNT    => $this->count,
 			self::EXPIRES  => $this->expires,
+			self::KEY      => $this->key,
 		];
 	}
 
@@ -80,7 +94,8 @@ final class Attempt implements \JsonSerializable {
 			$username,
 			Gateway::detect(),
 			1,
-			(int) gmdate( 'U' ) + Attempts::DURATION
+			(int) gmdate( 'U' ) + Attempts::DURATION,
+			''
 		);
 	}
 
@@ -94,7 +109,8 @@ final class Attempt implements \JsonSerializable {
 			$data[ self::USERNAME ],
 			Gateway::from( $data[ self::GATEWAY ] ),
 			(int) $data[ self::COUNT ],
-			(int) $data[ self::EXPIRES ]
+			(int) $data[ self::EXPIRES ],
+			$data[ self::KEY ] ?? ''
 		);
 	}
 }

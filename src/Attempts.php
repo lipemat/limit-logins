@@ -5,6 +5,8 @@ namespace Lipe\Limit_Logins;
 
 use Lipe\Lib\Util\Arrays;
 use Lipe\Limit_Logins\Attempts\Attempt;
+use Lipe\Limit_Logins\Authenticate\Unlock_Link;
+use Lipe\Limit_Logins\Email\Blocked;
 use Lipe\Limit_Logins\Traits\Singleton;
 
 /**
@@ -50,6 +52,9 @@ final class Attempts {
 				return;
 			}
 			$attempts[ $existing ]->add_failure();
+			if ( $attempts[ $existing ]->is_blocked() ) {
+				Unlock_Link::in()->send_blocked_email( $attempts[ $existing ] );
+			}
 		} else {
 			$attempts[] = Attempt::new_attempt( $username );
 		}

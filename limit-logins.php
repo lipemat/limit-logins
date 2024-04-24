@@ -19,7 +19,10 @@ namespace Lipe\Limit_Logins;
 
 use Lipe\Limit_Logins\Authenticate\Reset_Password;
 use Lipe\Limit_Logins\Authenticate\Rest;
+use Lipe\Limit_Logins\Authenticate\Unlock_Link;
 use Lipe\Limit_Logins\Authenticate\Xmlrpc;
+
+const PATH = __DIR__;
 
 add_action( 'plugins_loaded', function() {
 	Attempts::init();
@@ -27,6 +30,7 @@ add_action( 'plugins_loaded', function() {
 	Settings::init();
 	Reset_Password::init();
 	Rest::init();
+	Unlock_Link::init();
 	Xmlrpc::init();
 } );
 
