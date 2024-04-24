@@ -38,8 +38,5 @@ add_action( 'plugins_loaded', function() {
  * @return string
  */
 function sn( string $value ): string {
-	if ( function_exists( '\sn' ) ) {
-		return \sn( $value );
-	}
 	return trim( sanitize_text_field( wp_unslash( $value ) ) );
 }
