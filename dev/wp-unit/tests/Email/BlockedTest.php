@@ -57,8 +57,13 @@ class BlockedTest extends \WP_UnitTestCase {
 		$key = get_private_property( Unlock_Link::class, 'KEY' );
 		$mailer = tests_retrieve_phpmailer_instance();
 		$fixture = $this->triggerEmail();
-		preg_match( '/http:\/\/limit-logins\.loc\/wp-login\.php\?action=' . $action . '&' . $key . '=(?P<key>\w+)"/', $mailer->get_sent()->body, $values );
-		$this->assertEquals( $fixture->attempt->username, call_private_method( Unlock_Link::in(), 'get_matching_attempt', [ $values['key'] ] )->username );
+
+		preg_match_all( '/http:\/\/limit-logins\.loc\/wp-login\.php\?action=' . $action . '&' . $key . '=(?P<key>\w+)"/', $mailer->get_sent()->body, $values );
+		$this->assertCount( 2, $values['key'] );
+		$this->assertSame( $values['key'][0], $values['key'][1] );
+		foreach ( $values['key'] as $key ) {
+			$this->assertEquals( $fixture->attempt->username, call_private_method( Unlock_Link::in(), 'get_matching_attempt', [ $key ] )->username );
+		}
 	}
 
 
