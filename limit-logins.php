@@ -22,6 +22,7 @@ use Lipe\Limit_Logins\Authenticate\Rest;
 use Lipe\Limit_Logins\Authenticate\Unlock_Link;
 use Lipe\Limit_Logins\Authenticate\Xmlrpc;
 use Lipe\Limit_Logins\Email\Preview;
+use Lipe\Limit_Logins\WP_Cli\Commands;
 
 const PATH = __DIR__;
 
@@ -34,6 +35,10 @@ add_action( 'plugins_loaded', function() {
 	Rest::init();
 	Unlock_Link::init();
 	Xmlrpc::init();
+
+	if ( class_exists( '\WP_CLI' ) ) {
+		\WP_CLI::add_command( 'limit-logins', Commands::class );
+	}
 } );
 
 /**

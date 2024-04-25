@@ -16,3 +16,4 @@ parameters:
         - ../../autoload.php
     scanFiles:
         - %rootDir%/../../../stubs/cmb2/cmb2-2.10.php
+        - %rootDir%/../../php-stubs/wp-cli-stubs/wp-cli-stubs.php
