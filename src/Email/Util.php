@@ -47,6 +47,15 @@ final class Util {
 
 
 	/**
+	 * @phpstan-return never
+	 */
+	public function preview( Email $email ): void {
+		echo $email->get_message(); //phpcs:ignore
+		die();
+	}
+
+
+	/**
 	 * Get the rendered contents of an email template.
 	 *
 	 * @param string $slug - Template slug.
@@ -55,7 +64,9 @@ final class Util {
 	 */
 	public function get_template( string $slug ): string {
 		ob_start();
+		require PATH . '/templates/email/header.php';
 		require PATH . '/templates/email/' . $slug . '.php';
+		require PATH . '/templates/email/footer.php';
 
 		return (string) ob_get_clean();
 	}

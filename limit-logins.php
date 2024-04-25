@@ -21,12 +21,14 @@ use Lipe\Limit_Logins\Authenticate\Reset_Password;
 use Lipe\Limit_Logins\Authenticate\Rest;
 use Lipe\Limit_Logins\Authenticate\Unlock_Link;
 use Lipe\Limit_Logins\Authenticate\Xmlrpc;
+use Lipe\Limit_Logins\Email\Preview;
 
 const PATH = __DIR__;
 
 add_action( 'plugins_loaded', function() {
 	Attempts::init();
 	Authenticate::init();
+	Preview::init();
 	Settings::init();
 	Reset_Password::init();
 	Rest::init();

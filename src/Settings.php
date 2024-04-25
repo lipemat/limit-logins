@@ -3,10 +3,12 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins;
 
+use Lipe\Lib\Api\Api;
 use Lipe\Lib\CMB2\Options_Page;
 use Lipe\Lib\Settings\Settings_Trait;
 use Lipe\Limit_Logins\Attempts\Attempt;
 use Lipe\Limit_Logins\Attempts\Gateway;
+use Lipe\Limit_Logins\Email\Preview;
 use Lipe\Limit_Logins\Traits\Singleton;
 
 /**
@@ -43,6 +45,8 @@ final class Settings implements \ArrayAccess {
 		add_action( 'cmb2_init', function() {
 			$this->register();
 		} );
+
+		Api::init_once();
 	}
 
 
@@ -55,7 +59,7 @@ final class Settings implements \ArrayAccess {
 		    ->description( 'Link in include in blocked emails.' );
 		$box->field( self::EMAIL, 'Sender Email' )
 		    ->text_email()
-		    ->description( 'Email to send blocked notifications from which must be able to recieve replies.' );
+		    ->description( $this->email_description() );
 
 		$group = $box->group( self::LOGGED_FAILURES, 'Logged Failures' );
 		// Hide the up and down buttons to keep rows short.
@@ -103,6 +107,18 @@ final class Settings implements \ArrayAccess {
 	public function get_gateway_options(): array {
 		$gateways = \array_map( fn( $gateway ) => $gateway->value, Gateway::cases() );
 		return \array_combine( $gateways, $gateways );
+	}
+
+
+	private function email_description(): string {
+		$description = 'Email to send blocked notifications from which must be able to recieve replies.';
+		$url = Preview::in()->get_url();
+		if ( '' !== $url ) {
+			$description .= '<br /> <a href="' . $url . '" target="_blank">Preview email</a>';
+		} else {
+			$description .= ' <em>A block is required to preview the email.</em>';
+		}
+		return $description;
 	}
 
 
