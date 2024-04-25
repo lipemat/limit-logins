@@ -5,6 +5,7 @@ namespace Lipe\Limit_Logins\Email;
 
 use Lipe\Lib\Api\Api;
 use Lipe\Limit_Logins\Attempts;
+use Lipe\Limit_Logins\Attempts\Attempt;
 use Lipe\Limit_Logins\Traits\Singleton;
 
 /**
@@ -31,6 +32,10 @@ final class Preview {
 		if ( ! is_admin() || ! current_user_can( 'manage_options' ) ) {
 			return '';
 		}
+		$attempts = $this->get_valid_attempts();
+		if ( 0 === \count( $attempts ) ) {
+			return '';
+		}
 		return wp_nonce_url( Api::in()->get_url( self::ENDPOINT ), self::NONCE );
 	}
 
@@ -40,11 +45,23 @@ final class Preview {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
 		}
-		$attempts = Attempts::in()->get_all();
+		$attempts = $this->get_valid_attempts();
 		if ( 0 === \count( $attempts ) ) {
 			return;
 		}
 		$email = Blocked::factory( \reset( $attempts ), 'preview-key' );
 		Util::in()->preview( $email );
+	}
+
+
+	/**
+	 * @return Attempt[]
+	 */
+	private function get_valid_attempts(): array {
+		return \array_filter( Attempts::in()->get_all(), function(
+			Attempt $attempt
+		) {
+			return false !== username_exists( $attempt->username );
+		} );
 	}
 }

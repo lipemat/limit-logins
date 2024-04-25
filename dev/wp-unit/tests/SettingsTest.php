@@ -38,13 +38,15 @@ class SettingsTest extends \WP_UnitTestCase {
 	}
 
 
-	private function defaultError( string $username ): string {
-		return '<strong>Error:</strong> The password you entered for the username <strong>' . $username . '</strong> is incorrect. <a href="http://limit-logins.loc/wp-login.php?action=lostpassword">Lost your password?</a>';
-	}
+	public function test_email_description(): void {
+		$this->assertSame( 'Email to send blocked notifications from which must be able to recieve replies.<br /><em>A block with a valid username is required to preview the email.</em>', call_private_method( Settings::in(), 'email_description' ) );
 
-
-	private function tooManyError(): string {
-		return call_private_method( Authenticate::in(), 'get_error' );
+		wp_set_current_user( self::factory()->user->create( [
+			'role' => 'administrator',
+		] ) );
+		$GLOBALS['current_screen'] = convert_to_screen( 'options-general' );
+		require dirname( __DIR__ ) . '/fixtures/blocked-user.php';
+		$this->assertMatchesRegularExpression( '/Email to send blocked notifications from which must be able to recieve replies\.<br \/><a href="http:\/\/limit-logins\.loc\/api\/lipe__limit_logins__email__preview\/\?_wpnonce=(\w+)" target="_blank">Preview email<\/a>/', call_private_method( Settings::in(), 'email_description' ) );
 	}
 
 

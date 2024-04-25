@@ -114,9 +114,9 @@ final class Settings implements \ArrayAccess {
 		$description = 'Email to send blocked notifications from which must be able to recieve replies.';
 		$url = Preview::in()->get_url();
 		if ( '' !== $url ) {
-			$description .= '<br /> <a href="' . $url . '" target="_blank">Preview email</a>';
+			$description .= '<br /><a href="' . $url . '" target="_blank">Preview email</a>';
 		} else {
-			$description .= ' <em>A block is required to preview the email.</em>';
+			$description .= '<br /><em>A block with a valid username is required to preview the email.</em>';
 		}
 		return $description;
 	}
