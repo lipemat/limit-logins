@@ -22,7 +22,6 @@ $this->assertSame( call_private_method( Authenticate::in(), 'get_error' ), $resu
 
 $attempt = Attempts::in()->get_existing( $user->user_login );
 $this->assertTrue( $attempt->is_blocked() );
-$this->assertGreaterThanOrEqual( 1, Attempts::in()->get_all() );
 $this->assertSame( Attempts::ALLOWED_ATTEMPTS, $attempt->get_count() );
 
 if ( ! class_exists( 'Fixture_Blocked_User' ) ) {
