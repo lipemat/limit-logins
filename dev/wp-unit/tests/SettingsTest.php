@@ -11,24 +11,6 @@ use Lipe\Lib\Meta\Repo;
  *
  */
 class SettingsTest extends \WP_UnitTestCase {
-	public function test_contact_field(): void {
-		$user = self::factory()->user->create_and_get();
-		for ( $i = 0; $i < Attempts::ALLOWED_ATTEMPTS; $i ++ ) {
-			$result = wp_authenticate( $user->user_login, 'NOT VALID PASSWORD' );
-			$this->assertSame( $this->defaultError( $user->user_login ), $result->get_error_message() );
-		}
-
-		$error = wp_authenticate( $user->user_login, 'NOT VALID PASSWORD' )->get_error_message();
-		$this->assertSame( $this->tooManyError(), $error );
-		$this->assertStringNotContainsString( 'contact form', $error );
-
-		Settings::in()->update_option( Settings::CONTACT, 'https://contact.form' );
-
-		$error = wp_authenticate( $user->user_login, 'NOT VALID PASSWORD' )->get_error_message();
-		$this->assertSame( $this->tooManyError(), $error );
-		$this->assertStringContainsString( 'Use the <a href="https://contact.form">contact form</a> for help.', $error );
-	}
-
 
 	public function test_clear_limit_login_attempts(): void {
 		global $wpdb;

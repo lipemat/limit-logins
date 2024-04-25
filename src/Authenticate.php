@@ -40,6 +40,6 @@ final class Authenticate {
 			return '<strong>ERROR:</strong> Too many failed login attempts.';
 		}
 
-		return "<strong>ERROR:</strong> Too many failed login attempts.<br />Use the <a href=\"{$contact}\">contact form</a> for help.";
+		return '<strong>ERROR:</strong> Too many failed login attempts.<br />An email has been sent to the email on file with more information.';
 	}
 }
