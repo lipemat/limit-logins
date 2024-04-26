@@ -7,6 +7,8 @@ use Lipe\Lib\Api\Api;
 use Lipe\Limit_Logins\Attempts;
 use Lipe\Limit_Logins\Attempts\Attempt;
 use Lipe\Limit_Logins\Traits\Singleton;
+use Lipe\Limit_Logins\Utils;
+use function Lipe\Limit_Logins\container;
 
 /**
  * @author Mat Lipe
@@ -19,6 +21,7 @@ final class Preview {
 	private const ENDPOINT = 'lipe__limit_logins__email__preview';
 	private const NONCE    = 'lipe/limit-logins/email/preview/nonce';
 
+	private bool $is_preview = false;
 
 	private function hook(): void {
 		add_action( Api::in()->get_action( self::ENDPOINT ), function() {
@@ -40,8 +43,13 @@ final class Preview {
 	}
 
 
+	public function is_preview(): bool {
+		return $this->is_preview;
+	}
+
+
 	private function preview(): void {
-		check_ajax_referer( self::NONCE, '_wpnonce' );
+		check_admin_referer( self::NONCE );
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
 		}
@@ -50,7 +58,17 @@ final class Preview {
 			return;
 		}
 		$email = Blocked::factory( \reset( $attempts ), 'preview-key' );
-		Util::in()->preview( $email );
+		$this->render( $email );
+	}
+
+
+	/**
+	 * @phpstan-return never
+	 */
+	private function render( Email $email ): void {
+		$this->is_preview = true;
+		echo $email->get_message(); //phpcs:ignore
+		Utils::in()->exit();
 	}
 
 
@@ -63,5 +81,10 @@ final class Preview {
 		) {
 			return false !== username_exists( $attempt->username );
 		} );
+	}
+
+
+	public static function in(): Preview {
+		return container()->get( __CLASS__ );
 	}
 }

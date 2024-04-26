@@ -52,7 +52,7 @@ class BlockedTest extends \WP_UnitTestCase {
 	}
 
 
-	public function test_includes_currect_unlock_link(): void {
+	public function test_includes_correct_unlock_link(): void {
 		$action = get_private_property( Unlock_Link::class, 'ACTION' );
 		$key = get_private_property( Unlock_Link::class, 'KEY' );
 		$mailer = tests_retrieve_phpmailer_instance();

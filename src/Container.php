@@ -5,6 +5,7 @@ namespace Lipe\Limit_Logins;
 
 use Lipe\Limit_Logins\Service_Providers\Authenticate_Provider;
 use Lipe\Limit_Logins\Service_Providers\Core_Provider;
+use Lipe\Limit_Logins\Service_Providers\Email_Provider;
 
 /**
  * @author Mat Lipe
@@ -27,8 +28,9 @@ final class Container {
 
 	private function __construct( \Pimple\Container $container ) {
 		$this->container = $container;
-		$this->container->register( new Core_Provider() );
 		$this->container->register( new Authenticate_Provider() );
+		$this->container->register( new Core_Provider() );
+		$this->container->register( new Email_Provider() );
 	}
 
 

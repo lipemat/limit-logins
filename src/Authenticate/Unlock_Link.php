@@ -6,11 +6,12 @@ namespace Lipe\Limit_Logins\Authenticate;
 
 use Lipe\Limit_Logins\Attempts;
 use Lipe\Limit_Logins\Attempts\Attempt;
-use Lipe\Limit_Logins\Container;
 use Lipe\Limit_Logins\Email\Blocked;
+use Lipe\Limit_Logins\Email\Preview;
 use Lipe\Limit_Logins\Email\Util;
 use Lipe\Limit_Logins\Traits\Singleton;
 use Lipe\Limit_Logins\Utils;
+use function Lipe\Limit_Logins\container;
 
 /**
  * @author Mat Lipe
@@ -55,10 +56,15 @@ final class Unlock_Link {
 		if ( false === $user ) {
 			return '';
 		}
-		$key = get_password_reset_key( $user );
-		if ( is_wp_error( $key ) ) {
-			return '';
+		if ( Preview::in()->is_preview() ) {
+			$key = 'preview-key';
+		} else {
+			$key = get_password_reset_key( $user );
+			if ( is_wp_error( $key ) ) {
+				return '';
+			}
 		}
+
 		return add_query_arg( [
 			'action' => 'rp',
 			'key'    => $key,
@@ -171,6 +177,6 @@ final class Unlock_Link {
 
 
 	public static function in(): Unlock_Link {
-		return Container::instance()->get( __CLASS__ );
+		return container()->get( __CLASS__ );
 	}
 }

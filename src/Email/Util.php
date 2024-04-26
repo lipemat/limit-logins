@@ -6,6 +6,7 @@ namespace Lipe\Limit_Logins\Email;
 use Lipe\Lib\Util\Actions;
 use Lipe\Limit_Logins\Settings;
 use Lipe\Limit_Logins\Traits\Singleton;
+use Lipe\Limit_Logins\Utils;
 use const Lipe\Limit_Logins\PATH;
 
 /**
@@ -43,15 +44,6 @@ final class Util {
 		}
 
 		return false;
-	}
-
-
-	/**
-	 * @phpstan-return never
-	 */
-	public function preview( Email $email ): void {
-		echo $email->get_message(); //phpcs:ignore
-		die();
 	}
 
 
