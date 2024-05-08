@@ -13,6 +13,31 @@ use Lipe\Limit_Logins\Settings as Settings;
  */
 class AttemptsTest extends \WP_Test_REST_TestCase {
 
+	public function test_get_existing(): void {
+		/** @var \Fixture_Blocked_User $fixture */
+		$user_0 = ( require \dirname( __DIR__ ) . '/fixtures/blocked-user.php' )->user->user_login;
+		$_SERVER['REMOTE_ADDR'] = '2.2.2.2';
+		$user_1 = ( require \dirname( __DIR__ ) . '/fixtures/blocked-user.php' )->user->user_login;
+		$data = Settings::in()->get_option( Settings::LOGGED_FAILURES, [] );
+		$this->assertSame( $user_0, Attempts::in()->get_existing( $user_0 )->username );
+		$this->assertSame( $user_1, Attempts::in()->get_existing( $user_1 )->username );
+
+		// 1 available attempt, should receive the matching IP.
+		$data[0]['expires'] = (int) gmdate( 'U' ) - 1;
+		$data[0]['count'] = Attempts::ALLOWED_ATTEMPTS - 1;
+		Settings::in()->update_option( Settings::LOGGED_FAILURES, $data );
+		$this->assertSame( $user_1, Attempts::in()->get_existing( $user_0 )->username );
+		$this->assertSame( $user_1, Attempts::in()->get_existing( $user_1 )->username );
+
+		// 2 available attempts, should receive the blocked one.
+		$data[0]['expires'] = (int) gmdate( 'U' ) + 30;
+		$data[0]['ip'] = $data[1]['ip'];
+		Settings::in()->update_option( Settings::LOGGED_FAILURES, $data );
+		$this->assertSame( $user_1, Attempts::in()->get_existing( $user_0 )->username );
+		$this->assertSame( $user_1, Attempts::in()->get_existing( $user_1 )->username );
+	}
+
+
 	public function test_username_failure(): void {
 		$password = wp_generate_password();
 		$user = self::factory()->user->create_and_get( [

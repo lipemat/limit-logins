@@ -14,9 +14,9 @@ use PHPUnit\Framework\MockObject\NeverReturningMethodException;
  *
  */
 class Unlock_LinkTest extends \WP_UnitTestCase {
-	public static $unlock_key = '';
+	public static string $unlock_key = '';
 
-	public static $rendered = '';
+	public static string $rendered = '';
 
 
 	public function setUp(): void {

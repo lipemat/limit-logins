@@ -67,7 +67,7 @@ final class Attempts {
 		$attempts = $this->clear_expired( $this->get_all() );
 		$existing = $this->get_existing_index( $attempts, $username );
 
-		return null === $existing ? null : $this->get_all()[ $existing ];
+		return $attempts[ $existing ] ?? null;
 	}
 
 
@@ -107,12 +107,18 @@ final class Attempts {
 	/**
 	 * Get the index of existing attempt which matches the username or ip.
 	 *
+	 * If more than one attempt is found, the first blocked attempt is returned.
+	 *
 	 * @phpstan-param list<Attempt> $attempts
 	 */
 	private function get_existing_index( array $attempts, string $username ): ?int {
 		$ip = Utils::in()->get_current_ip();
-		$found = Arrays::in()->find_index( $attempts, fn( $attempt ) => $attempt->username === $username || $attempt->ip === $ip );
-
-		return null === $found ? null : (int) $found;
+		$found = \array_filter( $attempts, fn( $attempt ) => $attempt->username === $username || $attempt->ip === $ip );
+		foreach ( $found as $i => $attempt ) {
+			if ( $attempt->is_blocked() ) {
+				return $i;
+			}
+		}
+		return \count( $found ) > 0 ? \array_key_first( $found ) : null;
 	}
 }
