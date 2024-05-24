@@ -12,6 +12,7 @@ use Lipe\Limit_Logins\Email\Util;
 use Lipe\Limit_Logins\Traits\Singleton;
 use Lipe\Limit_Logins\Utils;
 use function Lipe\Limit_Logins\container;
+use function Lipe\Limit_Logins\sn;
 
 /**
  * @author Mat Lipe
