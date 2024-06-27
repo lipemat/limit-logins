@@ -21,7 +21,7 @@ final class Utils {
 
 
 	/**
-	 * Errors from the application passswords do not provide a username.
+	 * Errors from the application passwords do not provide a username.
 	 * We use the IP with a 'rest-' designator to make easier to see in the admin.
 	 *
 	 * If we used the same user such as 'unknown', then ALL REST users
@@ -53,6 +53,7 @@ final class Utils {
 
 
 	/**
+	 * @todo Switch to \Lipe\Lib\Util\Testing::exit() when we can require 5.0.0
 	 * @phpstan-return  never
 	 */
 	public function exit(): void {
