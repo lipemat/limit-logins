@@ -3,6 +3,7 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins;
 
+use Lipe\Lib\CMB2\Field\Type;
 use Lipe\Lib\Meta\Repo;
 
 /**
@@ -19,7 +20,7 @@ class SettingsTest extends \WP_UnitTestCase {
 			$this->assertNotFalse( get_option( $option['option_name'] ) );
 		}
 		$global_count = $wpdb->get_var( 'SELECT COUNT(*) from ' . $wpdb->options );
-		$this->assertSame( 'checkbox', call_private_method( Repo::in(), 'get_field', [ Settings::CLEAR ] )->get_type() );
+		$this->assertSame( Type::CHECKBOX, call_private_method( Repo::in(), 'get_field', [ Settings::CLEAR ] )->get_type() );
 
 		$find_query = $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->options} WHERE option_name LIKE %s", 'limit_login_%' );
 		$this->assertSame( 24, (int) $wpdb->get_var( $find_query ) );
@@ -34,7 +35,7 @@ class SettingsTest extends \WP_UnitTestCase {
 		}
 
 		do_action( 'cmb2_init' );
-		$this->assertSame( 'title', call_private_method( Repo::in(), 'get_field', [ Settings::CLEAR ] )->get_type() );
+		$this->assertSame( Type::TITLE, call_private_method( Repo::in(), 'get_field', [ Settings::CLEAR ] )->get_type() );
 	}
 
 
