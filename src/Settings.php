@@ -132,7 +132,12 @@ final class Settings implements \ArrayAccess {
 	 */
 	private function clear_limit_login_attempts_options(): void {
 		global $wpdb;
-		if ( false === $wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", 'limit_login_%' ) ) ) {
+		if ( ! $wpdb instanceof \wpdb ) {
+			throw new \ErrorException( 'Failed to get global $wpdb.' );
+		}
+		$result = $wpdb->query( $wpdb->prepare( 'DELETE FROM %i WHERE option_name LIKE %s', $wpdb->options, 'limit_login_%' ) ?? '' );
+
+		if ( false === $result ) {
 			throw new \ErrorException( 'Failed to clear limit login attempt options.' );
 		}
 	}
