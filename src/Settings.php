@@ -52,7 +52,7 @@ final class Settings implements \ArrayAccess {
 
 	private function register(): void {
 		$box = new Options_Page( self::NAME, 'Limit Logins' );
-		$box->parent_slug = 'options-general.php';
+		$box->parent_slug( 'options-general.php' );
 
 		$box->field( self::CONTACT, 'Contact Page' )
 		    ->text_url()
