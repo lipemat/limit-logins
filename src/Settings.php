@@ -18,10 +18,10 @@ use Lipe\Limit_Logins\Traits\Singleton;
  * @phpstan-import-type DATA from Attempt
  *
  * @phpstan-type KEYS array{
- *     'lipe/limit-logins/settings/limit-logins/clear': bool,
- *     'lipe/limit-logins/settings/limit-logins/contact': string,
- *     'lipe/limit-logins/settings/limit-logins/email': string,
- *     'lipe/limit-logins/settings/limit-logins/logged-failures': list<DATA>
+ *     "lipe/limit-logins/settings/limit-logins/clear": bool,
+ *     "lipe/limit-logins/settings/limit-logins/contact": string,
+ *     "lipe/limit-logins/settings/limit-logins/email": string,
+ *     "lipe/limit-logins/settings/limit-logins/logged-failures": list<DATA>
  * }
  *
  * @implements \ArrayAccess<self::*, value-of<KEYS>>
