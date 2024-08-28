@@ -3,7 +3,7 @@
 	<!-- See https://github.com/squizlabs/PHP_CodeSniffer/wiki/Annotated-Ruleset -->
 
 	<description>Ruleset for Limit Logins</description>
-	<version>4.2.1</version>
+	<version>4.3.0</version>
 
 	<!-- Include when not specified -->
 	<file>./</file>
@@ -28,6 +28,7 @@
 		<properties>
 			<property name="prefixes" type="array">
 				<element value="Lipe\Limit_Logins" />
+				<element value="lipe/limit-logins" />
 			</property>
 		</properties>
 	</rule>
