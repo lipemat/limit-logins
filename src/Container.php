@@ -3,9 +3,6 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins;
 
-use Lipe\Limit_Logins\Authenticate\Unlock_Link;
-use Lipe\Limit_Logins\Email\Preview;
-use Lipe\Limit_Logins\Security\Users;
 use Lipe\Limit_Logins\Service_Providers\Authenticate_Provider;
 use Lipe\Limit_Logins\Service_Providers\Core_Provider;
 use Lipe\Limit_Logins\Service_Providers\Email_Provider;
@@ -15,13 +12,17 @@ use Lipe\Limit_Logins\Service_Providers\Security_Provider;
  * @author Mat Lipe
  * @since  0.15.0
  *
+ * @phpstan-import-type PROVIDER from Authenticate_Provider as AUTHENTICATE_P
+ * @phpstan-import-type PROVIDER from Core_Provider as CORE
+ * @phpstan-import-type PROVIDER from Email_Provider as EMAIL
+ * @phpstan-import-type PROVIDER from Security_Provider as SECURITY
  *
- * @phpstan-type SERVICES array{
- *     "Lipe\Limit_Logins\Security\Users": Users,
- *     "Lipe\Limit_Logins\Utils": Utils,
- *     "Lipe\Limit_Logins\Email\Preview": Preview,
- *     "Lipe\Limit_Logins\Authenticate\Unlock_Link": Unlock_Link,
- * }
+ * @phpstan-type SERVICES \Union<
+ *    AUTHENTICATE_P,
+ *    CORE,
+ *    EMAIL,
+ *    SECURITY,
+ * >
  */
 final class Container {
 	/**

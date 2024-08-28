@@ -11,6 +11,9 @@ use Pimple\ServiceProviderInterface;
  * @author Mat Lipe
  * @since  April 2024
  *
+ * @phpstan-type PROVIDER array{
+ *        "Lipe\Limit_Logins\Authenticate\Unlock_Link": Unlock_Link,
+ * }
  */
 final class Authenticate_Provider implements ServiceProviderInterface {
 	public function register( Container $pimple ): void {

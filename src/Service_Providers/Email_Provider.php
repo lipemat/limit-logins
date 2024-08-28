@@ -11,6 +11,9 @@ use Pimple\ServiceProviderInterface;
  * @author Mat Lipe
  * @since  April 2024
  *
+ * @phpstan-type PROVIDER array{
+ *     "Lipe\Limit_Logins\Email\Preview": Preview,
+ * }
  */
 final class Email_Provider implements ServiceProviderInterface {
 	public function register( Container $pimple ): void {

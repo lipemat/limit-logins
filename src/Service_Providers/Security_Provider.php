@@ -12,6 +12,10 @@ use Pimple\ServiceProviderInterface;
  * @author Mat Lipe
  * @since  August 2024
  *
+ * @phpstan-type PROVIDER array{
+ *     "Lipe\Limit_Logins\Security\Oembed_Endpoint": Oembed_Endpoint,
+ *     "Lipe\Limit_Logins\Security\Users": Users,
+ * }
  */
 final class Security_Provider implements ServiceProviderInterface {
 	public function register( Container $pimple ): void {
