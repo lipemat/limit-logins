@@ -14,6 +14,6 @@ use Pimple\ServiceProviderInterface;
  */
 final class Core_Provider implements ServiceProviderInterface {
 	public function register( Container $pimple ): void {
-		$pimple['email.util'] = fn() => new Utils();
+		$pimple[ Utils::class ] = fn() => new Utils();
 	}
 }

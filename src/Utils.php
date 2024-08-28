@@ -66,6 +66,6 @@ final class Utils {
 
 
 	public static function in(): Utils {
-		return container()->get( 'email.util' );
+		return container()->get( __CLASS__ );
 	}
 }

@@ -35,10 +35,12 @@ final class Settings implements \ArrayAccess {
 
 	public const NAME = 'lipe/limit-logins/settings/limit-logins';
 
-	public const CLEAR           = 'lipe/limit-logins/settings/limit-logins/clear';
-	public const CONTACT         = 'lipe/limit-logins/settings/limit-logins/contact';
-	public const EMAIL           = 'lipe/limit-logins/settings/limit-logins/email';
-	public const LOGGED_FAILURES = 'lipe/limit-logins/settings/limit-logins/logged-failures';
+	public const CLEAR                = 'lipe/limit-logins/settings/limit-logins/clear';
+	public const CONTACT              = 'lipe/limit-logins/settings/limit-logins/contact';
+	public const DISABLE_USER_ARCHIVE = 'lipe/limit-logins/settings/limit-logins/disable-archive';
+	public const DISABLE_USER_REST    = 'lipe/limit-logins/settings/limit-logins/disable-endpoint';
+	public const EMAIL                = 'lipe/limit-logins/settings/limit-logins/email';
+	public const LOGGED_FAILURES      = 'lipe/limit-logins/settings/limit-logins/logged-failures';
 
 
 	private function hook(): void {
@@ -60,6 +62,12 @@ final class Settings implements \ArrayAccess {
 		$box->field( self::EMAIL, 'Sender Email' )
 		    ->text_email()
 		    ->description( $this->email_description() );
+		$box->field( self::DISABLE_USER_ARCHIVE, 'Disable User Archive' )
+		    ->true_false()
+		    ->description( 'Prevent the user archive page from being accessed.' );
+		$box->field( self::DISABLE_USER_REST, 'Disable User REST Endpoint' )
+		    ->true_false()
+		    ->description( 'Prevent the user REST endpoint from being accessed.' );
 
 		$group = $box->group( self::LOGGED_FAILURES, 'Logged Failures' );
 		// Hide the up and down buttons to keep rows short.
