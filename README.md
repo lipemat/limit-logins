@@ -13,32 +13,47 @@ WordPress plugin that limits the number of concurrent logins for a user.
 
 If you really want to prevent brute force attacks and are not concerned with annoying your legitimate users, this plugin may be for you.
 
-### Tracks
+## Purpose
 
-- User ID
-- IP Address
-
-If the same IP or username fails to login more than 5 times then neither the user nor the IP will be able to login for 12 hours.
-
-### Purpose
-
-I had been using other limit login attempts plugins for a long time. Every time an attacker was able to find a way to attempt more logins than the set number, I wrote another extension and unit tests. While writing around something like 30 tests, I realized that no third-party plugin was ever going to provide the desired level of security. There is simply too much concern over affecting legitimate users.
+I had been using other limit login attempts plugins for a long time. Every time an attacker can find a way to attempt more logins than the set number, I wrote another extension and unit tests. While writing around something like 30 tests, I realized that no third-party plugin was ever going to provide the desired level of security.
 
 This plugin is the combination of every extension and unit test I wrote for the other plugins.
 
 Sorry attackers, but I'm over you. :-p
 
+## Tracks
 
-### Installation
+- User ID
+- IP Address
+
+If the same IP or username fails to log in more than 5 times then neither the user, nor the IP will be able to log in for 12 hours.
+
+## Notifications
+
+An email is sent to the blocked user with a link to reset their password or unlock their account. This allows a legitimate user to regain access without waiting for the lockout period to expire.
+
+## User Security
+
+### User Endpoints
+By default, WP provides user archives and REST endpoints for your users. Unfortunately, these endpoints expose the usernames of your users and give attackers something to go on. 
+
+On the settings screen you will find options to disable these endpoints and prevent the exposure of usernames.
+
+### Usernames
+
+This library prevents common admin usernames from being used when creating a new user. Combined with disabling user endpoints, this makes it extremely difficult for an attacker to guess a valid username.
+
+
+## Installation
 ``` sh 
 composer require lipemat/limit-logins
 ```
-### Usage
+## Usage
 
 ``` php
 require __DIR__ . '/vendor/autoload.php'
 ```
 
-### Notes
+## Notes
 
 This plugin is intended to be used within an [OnPoint Plugins](https://onpointplugins.com) project. It is likely going to have a lot of assumptions that are specific to our projects. 
