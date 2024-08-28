@@ -80,6 +80,7 @@ final class Container {
 	public static function instance(): self {
 		if ( null === self::$core_instance ) {
 			self::$core_instance = new self( new \Pimple\Container( [] ) );
+			do_action( 'lipe/limit-logins/container-loaded', self::$core_instance->container() );
 		}
 
 		return self::$core_instance;

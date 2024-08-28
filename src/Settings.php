@@ -21,7 +21,9 @@ use Lipe\Limit_Logins\Traits\Singleton;
  *     "lipe/limit-logins/settings/limit-logins/clear": bool,
  *     "lipe/limit-logins/settings/limit-logins/contact": string,
  *     "lipe/limit-logins/settings/limit-logins/email": string,
- *     "lipe/limit-logins/settings/limit-logins/logged-failures": list<DATA>
+ *     "lipe/limit-logins/settings/limit-logins/logged-failures": list<DATA>,
+ *     "lipe/limit-logins/settings/limit-logins/disable-archive": bool,
+ *     "lipe/limit-logins/settings/limit-logins/disable-endpoint": bool
  * }
  *
  * @implements \ArrayAccess<self::*, value-of<KEYS>>
@@ -62,12 +64,13 @@ final class Settings implements \ArrayAccess {
 		$box->field( self::EMAIL, 'Sender Email' )
 		    ->text_email()
 		    ->description( $this->email_description() );
-		$box->field( self::DISABLE_USER_ARCHIVE, 'Disable User Archive' )
+		$box->field( self::DISABLE_USER_ARCHIVE, 'Disable User Archives' )
 		    ->true_false()
-		    ->description( 'Prevent the user archive page from being accessed.' );
-		$box->field( self::DISABLE_USER_REST, 'Disable User REST Endpoint' )
+		    ->description( 'Prevent the user archive pages from being accessed and exposing usernames.' )
+		    ->change_cb( fn() => flush_rewrite_rules() );
+		$box->field( self::DISABLE_USER_REST, 'Disable User REST Endpoints' )
 		    ->true_false()
-		    ->description( 'Prevent the user REST endpoint from being accessed.' );
+		    ->description( 'Prevent REST user endpoints from being accessed and exposing usernames.' );
 
 		$group = $box->group( self::LOGGED_FAILURES, 'Logged Failures' );
 		// Hide the up and down buttons to keep rows short.
