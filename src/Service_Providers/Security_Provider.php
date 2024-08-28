@@ -3,7 +3,7 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins\Service_Providers;
 
-use Lipe\Limit_Logins\Settings;
+use Lipe\Limit_Logins\Security\Oembed_Endpoint;
 use Lipe\Limit_Logins\Security\Users;
 use Pimple\Container;
 use Pimple\ServiceProviderInterface;
@@ -15,9 +15,18 @@ use Pimple\ServiceProviderInterface;
  */
 final class Security_Provider implements ServiceProviderInterface {
 	public function register( Container $pimple ): void {
+		$pimple[ Oembed_Endpoint::class ] = fn() => new Oembed_Endpoint();
 		$pimple[ Users::class ] = fn() => new Users();
 
+		$this->Oembed_Endpoint();
 		$this->Users();
+	}
+
+
+	private function Oembed_Endpoint(): void {
+		add_action( 'init', function() {
+			Oembed_Endpoint::in()->remove_oembed_endpoint();
+		} );
 	}
 
 

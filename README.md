@@ -43,6 +43,10 @@ On the settings screen you will find options to disable these endpoints and prev
 
 This library prevents common admin usernames from being used when creating a new user. Combined with disabling user endpoints, this makes it extremely difficult for an attacker to guess a valid username.
 
+### Oembed Endpoint
+
+The oEmbed endpoint exposes the main user's username to the public. This plugin disables oEmbed embedding of the site and REST API.
+
 
 ## Installation
 ``` sh 
