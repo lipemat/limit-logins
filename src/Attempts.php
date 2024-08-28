@@ -5,6 +5,7 @@ namespace Lipe\Limit_Logins;
 
 use Lipe\Lib\Util\Arrays;
 use Lipe\Limit_Logins\Attempts\Attempt;
+use Lipe\Limit_Logins\Attempts\Gateway;
 use Lipe\Limit_Logins\Authenticate\Unlock_Link;
 use Lipe\Limit_Logins\Email\Blocked;
 use Lipe\Limit_Logins\Traits\Singleton;
@@ -87,11 +88,23 @@ final class Attempts {
 
 
 	/**
+	 * Get all attempts from options translated into Attempt objects.
+	 *
 	 * @return list<Attempt>
 	 */
 	public function get_all(): array {
 		$attempts = Settings::in()->get_option( Settings::LOGGED_FAILURES, [] );
-		return \array_map( [ Attempt::class, 'factory' ], $attempts );
+
+		return \array_map( function( array $attempt ): Attempt {
+			return Attempt::factory( [
+				Attempt::COUNT    => $attempt[ Attempt::COUNT ] ?? 1,
+				Attempt::EXPIRES  => $attempt[ Attempt::EXPIRES ] ?? (int) gmdate( 'U' ) + Attempts::DURATION,
+				Attempt::GATEWAY  => $attempt[ Attempt::GATEWAY ] ?? Gateway::WP_LOGIN->value,
+				Attempt::IP       => $attempt[ Attempt::IP ] ?? '',
+				Attempt::KEY      => $attempt[ Attempt::KEY ] ?? '',
+				Attempt::USERNAME => $attempt[ Attempt::USERNAME ] ?? '',
+			] );
+		}, $attempts );
 	}
 
 

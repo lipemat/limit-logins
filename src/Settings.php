@@ -21,7 +21,7 @@ use Lipe\Limit_Logins\Traits\Singleton;
  *     "lipe/limit-logins/settings/limit-logins/clear": bool,
  *     "lipe/limit-logins/settings/limit-logins/contact": string,
  *     "lipe/limit-logins/settings/limit-logins/email": string,
- *     "lipe/limit-logins/settings/limit-logins/logged-failures": list<DATA>,
+ *     "lipe/limit-logins/settings/limit-logins/logged-failures": list<\Partial<DATA>>,
  *     "lipe/limit-logins/settings/limit-logins/disable-archive": bool,
  *     "lipe/limit-logins/settings/limit-logins/disable-endpoint": bool
  * }
