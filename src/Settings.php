@@ -75,7 +75,7 @@ final class Settings implements \ArrayAccess {
 		$group = $box->group( self::LOGGED_FAILURES, 'Logged Failures' );
 		// Hide the up and down buttons to keep rows short.
 		$group->before_group = '<style>.cmb-group-table .cmb-group-table-control a.move-up{ display: none !important; }.cmb-group-table .cmb-group-table-control a.move-down{ display: none !important; }</style>';
-		$group->layout( 'table' )->repeatable();
+		$group->layout( 'table' )->repeatable( true, 'Add Failure' );
 
 		$group->field( Attempt::IP, 'IP' )
 		      ->text_small()
