@@ -47,6 +47,7 @@ final class Users {
 		return \array_merge( $illegal, [
 			'admin',
 			'administrator',
+			'dev',
 			'root',
 			'superadmin',
 			'support',

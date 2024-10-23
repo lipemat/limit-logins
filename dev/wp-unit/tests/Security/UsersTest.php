@@ -115,6 +115,7 @@ class UsersTest extends \WP_UnitTestCase {
 		return [
 			[ 'admin' ],
 			[ 'administrator' ],
+			[ 'dev' ],
 			[ 'root' ],
 			[ 'superadmin' ],
 			[ 'webmaster' ],
