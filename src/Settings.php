@@ -60,7 +60,7 @@ final class Settings implements \ArrayAccess {
 
 		$box->field( self::CONTACT, 'Contact Page' )
 		    ->text_url()
-		    ->description( 'Link in include in blocked emails.' );
+		    ->description( 'Link included in blocked emails.' );
 		$box->field( self::EMAIL, 'Sender Email' )
 		    ->text_email()
 		    ->description( $this->email_description() );
