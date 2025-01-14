@@ -23,7 +23,8 @@ use Lipe\Limit_Logins\Traits\Singleton;
  *     "lipe/limit-logins/settings/limit-logins/email": string,
  *     "lipe/limit-logins/settings/limit-logins/logged-failures": list<\Partial<DATA>>,
  *     "lipe/limit-logins/settings/limit-logins/disable-archive": bool,
- *     "lipe/limit-logins/settings/limit-logins/disable-endpoint": bool
+ *     "lipe/limit-logins/settings/limit-logins/disable-endpoint": bool,
+ *     "lipe/limit-logins/settings/limit-logins/disable-oembed": bool,
  * }
  *
  * @implements \ArrayAccess<self::*, value-of<KEYS>>
@@ -39,6 +40,7 @@ final class Settings implements \ArrayAccess {
 
 	public const CLEAR                = 'lipe/limit-logins/settings/limit-logins/clear';
 	public const CONTACT              = 'lipe/limit-logins/settings/limit-logins/contact';
+	public const DISABLE_OEMBED       = 'lipe/limit-logins/settings/limit-logins/disable-oembed';
 	public const DISABLE_USER_ARCHIVE = 'lipe/limit-logins/settings/limit-logins/disable-archive';
 	public const DISABLE_USER_REST    = 'lipe/limit-logins/settings/limit-logins/disable-endpoint';
 	public const EMAIL                = 'lipe/limit-logins/settings/limit-logins/email';
@@ -71,6 +73,9 @@ final class Settings implements \ArrayAccess {
 		$box->field( self::DISABLE_USER_REST, 'Disable User REST Endpoints' )
 		    ->true_false()
 		    ->description( 'Prevent REST user endpoints from being accessed and exposing usernames.' );
+		$box->field( self::DISABLE_OEMBED, 'Disable oEmbed' )
+		    ->true_false()
+		    ->description( 'Prevent oEmbed from being accessed and exposing usernames.' );
 
 		$group = $box->group( self::LOGGED_FAILURES, 'Logged Failures' );
 		// Hide the up and down buttons to keep rows short.

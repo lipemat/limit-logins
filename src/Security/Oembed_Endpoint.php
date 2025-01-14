@@ -3,6 +3,7 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins\Security;
 
+use Lipe\Limit_Logins\Settings;
 use function Lipe\Limit_Logins\container;
 
 /**
@@ -20,6 +21,10 @@ final class Oembed_Endpoint {
 	 * external links in this site.
 	 */
 	public function remove_oembed_endpoint(): void {
+		if ( ! Settings::in()->get_option( Settings::DISABLE_OEMBED, false ) ) {
+			return;
+		}
+
 		add_filter( 'oembed_linktypes', '__return_empty_array' );
 		remove_action( 'wp_head', 'wp_oembed_add_discovery_links' );
 		add_filter( 'rest_endpoints', function( $endpoints ) {

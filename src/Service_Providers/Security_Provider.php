@@ -28,7 +28,7 @@ final class Security_Provider implements ServiceProviderInterface {
 
 
 	private function Oembed_Endpoint(): void {
-		add_action( 'init', function() {
+		add_action( 'cmb2_after_init', function() {
 			Oembed_Endpoint::in()->remove_oembed_endpoint();
 		} );
 	}
