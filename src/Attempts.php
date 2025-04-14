@@ -95,7 +95,7 @@ final class Attempts {
 	public function get_all(): array {
 		$attempts = Settings::in()->get_option( Settings::LOGGED_FAILURES, [] );
 
-		return \array_map( function( array $attempt ): Attempt {
+		return \array_values( \array_map( function( array $attempt ): Attempt {
 			return Attempt::factory( [
 				Attempt::COUNT    => $attempt[ Attempt::COUNT ] ?? 1,
 				Attempt::EXPIRES  => $attempt[ Attempt::EXPIRES ] ?? (int) gmdate( 'U' ) + Attempts::DURATION,
@@ -104,7 +104,7 @@ final class Attempts {
 				Attempt::KEY      => $attempt[ Attempt::KEY ] ?? '',
 				Attempt::USERNAME => $attempt[ Attempt::USERNAME ] ?? '',
 			] );
-		}, $attempts );
+		}, $attempts ) );
 	}
 
 
