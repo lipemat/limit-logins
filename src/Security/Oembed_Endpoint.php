@@ -25,7 +25,6 @@ final class Oembed_Endpoint {
 			return;
 		}
 
-		add_filter( 'oembed_linktypes', '__return_empty_array' );
 		remove_action( 'wp_head', 'wp_oembed_add_discovery_links' );
 		add_filter( 'rest_endpoints', function( $endpoints ) {
 			unset( $endpoints['/oembed/1.0/embed'] );

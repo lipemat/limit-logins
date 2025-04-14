@@ -17,12 +17,6 @@ class Oembed_EndpointTest extends \WP_UnitTestCase {
 		$this->assertTrue( Settings::in()->get_option( Settings::DISABLE_OEMBED ) );
 		do_action( 'cmb2_after_init' );
 
-		$this->assertEmpty( apply_filters( 'oembed_linktypes', [
-			'application/json+oembed' => 'json',
-			'text/xml+oembed'         => 'xml',
-			'application/xml+oembed'  => 'xml',
-		] ) );
-
 		$routes = rest_get_server()->get_routes();
 		$this->assertArrayNotHasKey( '/oembed/1.0/embed', $routes );
 		$this->assertArrayHasKey( '/oembed/1.0/proxy', $routes );
