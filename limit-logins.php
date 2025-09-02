@@ -35,10 +35,13 @@ add_action( 'plugins_loaded', function() {
 	Rest::init();
 	Unlock_Link::init();
 	Xmlrpc::init();
+} );
 
-	if ( class_exists( '\WP_CLI' ) ) {
-		\WP_CLI::add_command( 'limit-logins', Commands::class );
+add_action( 'cli_init', function() {
+	if ( ! class_exists( '\WP_CLI' ) ) {
+		return;
 	}
+	\WP_CLI::add_command( 'limit-logins', Commands::class );
 } );
 
 /**

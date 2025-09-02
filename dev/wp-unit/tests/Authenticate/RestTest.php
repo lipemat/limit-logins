@@ -118,7 +118,7 @@ class RestTest extends \WP_Test_REST_TestCase {
 	}
 
 
-	protected function get_response( string $route, array $args, string $method = 'POST' ): \WP_REST_Response {
+	protected function get_response( string $route, array $args, string $method = 'POST', array $headers = [] ): \WP_REST_Response {
 		$GLOBALS['current_user'] = null;
 		return parent::get_response( $route, $args, $method );
 	}
