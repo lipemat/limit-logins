@@ -16,7 +16,7 @@ use Lipe\Limit_Logins\Authenticate;
 class RestTest extends \WP_Test_REST_TestCase {
 	public function test_rest_api_failures(): void {
 		[ $user ] = $this->setupRestApi();
-		$this->assertSame( $this->defaultError(), wp_authenticate( $user->user_login, 'NOT VALID PASSWORD' )->get_error_message() );
+		$this->assertSame( $this->defaultError( $user->user_login ), wp_authenticate( $user->user_login, 'NOT VALID PASSWORD' )->get_error_message() );
 		$this->assertCount( 1, Attempts::in()->get_all() );
 		$this->assertSame( 1, Attempts::in()->get_existing( $user->user_login )->get_count() );
 
@@ -150,8 +150,8 @@ class RestTest extends \WP_Test_REST_TestCase {
 	}
 
 
-	private function defaultError(): string {
-		return '<strong>Error:</strong> Your username or password is incorrect. <a href="http://limit-logins.loc/wp-login.php?action=lostpassword">Lost your password?</a>';
+	private function defaultError( string $username ): string {
+		return '<strong>Error:</strong> The password you entered for the username <strong>' . $username . '</strong> is incorrect. <a href="http://limit-logins.loc/wp-login.php?action=lostpassword">Lost your password?</a>';
 	}
 
 

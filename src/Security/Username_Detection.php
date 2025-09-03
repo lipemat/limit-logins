@@ -3,6 +3,7 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins\Security;
 
+use Lipe\Limit_Logins\Settings;
 use function Lipe\Limit_Logins\container;
 
 /**
@@ -23,6 +24,10 @@ final class Username_Detection {
 	 */
 	public function standardize_login_errors( string $code, \WP_Error $error ): void {
 		if ( 'invalid_username' === $code || 'incorrect_password' === $code ) {
+			if ( ! Settings::in()->get_option( Settings::DISABLE_USER_ARCHIVE, false ) ) {
+				return;
+			}
+
 			// Prevent username enumeration by not revealing if the username exists.
 			$error->errors[ $code ] = [
 				'<strong>Error:</strong> Your username or password is incorrect. <a href="' . wp_lostpassword_url() . '">' .
@@ -39,8 +44,12 @@ final class Username_Detection {
 	 *
 	 * @filter lostpassword_user_data 10 2
 	 */
-	public function use_dummy_user_for_lost_password( \WP_User|false $user_data, \WP_Error $error ): \WP_User {
+	public function use_dummy_user_for_lost_password( \WP_User|false $user_data, \WP_Error $error ): \WP_User|false {
 		if ( $user_data instanceof \WP_User && ! $error->has_errors() ) {
+			return $user_data;
+		}
+
+		if ( ! Settings::in()->get_option( Settings::DISABLE_USER_ARCHIVE, false ) ) {
 			return $user_data;
 		}
 
