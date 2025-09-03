@@ -35,6 +35,27 @@ final class Users {
 
 
 	/**
+	 * Remove the author link from any REST responses.
+	 *
+	 * Will be broken if the endpoints are disabled.
+	 *
+	 * @filter rest_request_after_callbacks 10 1
+	 */
+	public function remove_author_links_from_rest_responses( mixed $result ): mixed {
+		if (
+			! $result instanceof \WP_REST_Response ||
+			! Settings::in()->get_option( Settings::DISABLE_USER_REST, false ) ||
+			current_user_can( 'edit_users' )
+		) {
+			return $result;
+		}
+
+		$result->remove_link( 'author' );
+		return $result;
+	}
+
+
+	/**
 	 * Prevent the admin username from being used as a login.
 	 *
 	 * @filter  illegal_user_logins 10 1

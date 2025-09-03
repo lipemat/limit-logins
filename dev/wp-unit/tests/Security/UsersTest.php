@@ -11,7 +11,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
  * @since  August 2024
  *
  */
-class UsersTest extends \WP_UnitTestCase {
+class UsersTest extends \WP_Test_REST_TestCase {
 	private const DISABLED_ENDPOINTS = [
 		'/wp/v2/users',
 		'/wp/v2/users/(?P<id>[\d]+)',
@@ -47,6 +47,22 @@ class UsersTest extends \WP_UnitTestCase {
 		foreach ( self::DISABLED_ENDPOINTS as $endpoint ) {
 			$this->assertArrayHasKey( $endpoint, $routes );
 		}
+	}
+
+
+	public function test_disable_author_links_on_rest_responses(): void {
+		$user = self::factory()->user->create_and_get();
+		$post = self::factory()->post->create_and_get( [
+			'post_author' => $user->ID,
+		] );
+
+		$response = $this->get_response( '/wp/v2/posts/' . $post->ID, [], 'GET' );
+		$this->assertArrayHasKey( 'author', $response->get_links() );
+
+		Settings::in()->update_option( Settings::DISABLE_USER_REST, true );
+		unset( $GLOBALS['wp_rest_server'] );
+		$response = $this->get_response( '/wp/v2/posts/' . $post->ID, [], 'GET' );
+		$this->assertArrayNotHasKey( 'author', $response->get_links() );
 	}
 
 
