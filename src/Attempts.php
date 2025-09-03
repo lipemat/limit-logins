@@ -7,7 +7,6 @@ use Lipe\Lib\Util\Arrays;
 use Lipe\Limit_Logins\Attempts\Attempt;
 use Lipe\Limit_Logins\Attempts\Gateway;
 use Lipe\Limit_Logins\Authenticate\Unlock_Link;
-use Lipe\Limit_Logins\Email\Blocked;
 use Lipe\Limit_Logins\Traits\Singleton;
 
 /**
@@ -94,6 +93,12 @@ final class Attempts {
 	 */
 	public function get_all(): array {
 		$attempts = Settings::in()->get_option( Settings::LOGGED_FAILURES, [] );
+		$attempts = \array_filter( $attempts, function( $attempt ) {
+			if ( ! isset( $attempt[ Attempt::USERNAME ] ) || ! isset( $attempt[ Attempt::IP ] ) ) {
+				return false;
+			}
+			return ! ( '' === $attempt[ Attempt::USERNAME ] && '' === $attempt[ Attempt::IP ] );
+		} );
 
 		return \array_values( \array_map( function( array $attempt ): Attempt {
 			return Attempt::factory( [
