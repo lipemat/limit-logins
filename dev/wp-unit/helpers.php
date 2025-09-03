@@ -2,28 +2,40 @@
 /** @noinspection PhpExpressionResultUnusedInspection, PhpUnhandledExceptionInspection */
 declare( strict_types=1 );
 
-use DG\BypassFinals;
-use Lipe\Lib\Util\Actions;
 use Lipe\Limit_Logins\Container;
 use function Lipe\Limit_Logins\container;
 
 /**
- * Version 2.6.1
+ * Version 3.1.0
  */
 
 /**
- * Call protected/private method of a class.
+ * A special exception class for the test helpers.
  *
- * @param class-string|object $object      An instantiated object or class name that we will run method on.
+ * - Allows us to know if an exception was specific to testing internals.
+ * - Ignornable exception for PHPStorm.
+ *
+ * @since 2.9.0
+ *
+ */
+class TestHelperException extends \Exception {
+}
+
+/**
+ * Call a protected / private method of a class.
+ *
+ * @param class-string|object $object      An instantiated object or class name that we will run the method on.
  * @param string              $method_name Method name to call.
  * @param array               $parameters  Array of parameters to pass into method.
  *
  * @return mixed Method return.
  */
 function call_private_method( string|object $object, string $method_name, array $parameters = [] ): mixed {
-	$reflection = new \ReflectionClass( is_string( $object ) ? $object : get_class( $object ) );
+	$reflection = new \ReflectionClass( \is_string( $object ) ? $object : \get_class( $object ) );
+	if ( \is_string( $object ) ) {
+		$object = $reflection->newInstanceWithoutConstructor();
+	}
 	$method = $reflection->getMethod( $method_name );
-	$method->setAccessible( true );
 
 	return $method->invokeArgs( $object, $parameters );
 }
@@ -31,21 +43,20 @@ function call_private_method( string|object $object, string $method_name, array 
 /**
  * Get the value of a private constant or property from an object.
  *
- * @param class-string|object $object   An instantiated object or class name that we will run method on.
+ * @param class-string|object $object   An instantiated object or class name that we will run the method on.
  * @param string              $property Property name or constant name to get.
  *
  * @return mixed
  */
 function get_private_property( string|object $object, string $property ): mixed {
-	$reflection = new \ReflectionClass( is_string( $object ) ? $object : get_class( $object ) );
+	$reflection = new \ReflectionClass( \is_string( $object ) ? $object : \get_class( $object ) );
 	if ( $reflection->hasProperty( $property ) ) {
 		$reflection_property = $reflection->getProperty( $property );
-		$reflection_property->setAccessible( true );
 		if ( $reflection_property->isStatic() ) {
 			return $reflection_property->getValue();
 		}
-		if ( is_string( $object ) ) {
-			throw new LogicException( 'Getging a non-static value from a non instantiated object is useless.' );
+		if ( \is_string( $object ) ) {
+			throw new \TestHelperException( 'Getting a non-static value from a non-instantiated object is useless.', E_USER_ERROR );
 		}
 		return $reflection_property->getValue( $object );
 	}
@@ -62,14 +73,13 @@ function get_private_property( string|object $object, string $property ): mixed 
  * @return void
  */
 function set_private_property( string|object $object, string $property, mixed $value ): void {
-	$reflection = new \ReflectionClass( is_string( $object ) ? $object : get_class( $object ) );
+	$reflection = new \ReflectionClass( \is_string( $object ) ? $object : \get_class( $object ) );
 	$reflection_property = $reflection->getProperty( $property );
-	$reflection_property->setAccessible( true );
 	if ( $reflection_property->isStatic() ) {
 		$reflection_property->setValue( null, $value );
 	} else {
-		if ( is_string( $object ) ) {
-			throw new LogicException( 'Setting a non-static value on a non instantiated object is useless.' );
+		if ( \is_string( $object ) ) {
+			throw new \TestHelperException( 'Setting a non-static value on a non-instantiated object is useless.', E_USER_ERROR );
 		}
 		$reflection_property->setValue( $object, $value );
 	}
@@ -117,36 +127,11 @@ function change_container_object( string $key, object $object, bool $is_factory 
  * @see \WP_UnitTestCase_Base::tear_down
  */
 function tests_reset_container(): void {
-	Actions::in()->clear_memoize_cache();
 	set_private_property( Container::instance(), 'core_instance', null );
-
-	// Reset the CMB2 options cache.
-	set_private_property( \CMB2_Options::class, 'option_sets', [] );
+	Container::instance();
 }
+
 
 /**
- * Allow extending a particular final class.
- *
- * Typically used with `change_container_object` when extending an
- * existing class with an anonymous class.
- *
- * We specify an allowed class to prevent tests from missing fatal errors with
- * inheriting from final classes.
- *
- * @notice   Must be called before the class is loaded into the application.
- *
- * @requires wp-unit 3.6.0+.
- *
- * @since    2.3.0
- *
- * @param class-string $class
- *
- * @return void
+ * `allow_extending_final` has been moved to the wp-unit library.
  */
-function allow_extending_final( string $class ): void {
-	static $bypass = [];
-	// Remove the global namespace to the directory structure is matched.
-	$bypass[] = '*/' . \implode( '/', \array_slice( \explode( '\\', $class ), 2 ) ) . '.php';
-	BypassFinals::enable();
-	BypassFinals::setWhitelist( \array_unique( $bypass ) );
-}
