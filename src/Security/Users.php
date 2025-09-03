@@ -59,7 +59,7 @@ final class Users {
 
 	/**
 	 * Disable the `author` query var so `?author=mat` resolves as either
-	 * a 404 or simple loads the homepage.
+	 * a 404 or simply loads the homepage.
 	 *
 	 * @filter query_vars 1_000 1
 	 *
@@ -95,6 +95,27 @@ final class Users {
 			return $rewrites;
 		}
 		return [];
+	}
+
+
+	/**
+	 * Remove the users from the sitemap entirely.
+	 *
+	 * @filter wp_sitemaps_add_provider 10 2
+	 *
+	 * @param \WP_Sitemaps_Provider $provider
+	 * @param string                $name
+	 *
+	 * @return false|\WP_Sitemaps_Provider
+	 */
+	public function disable_user_sitemap( \WP_Sitemaps_Provider $provider, string $name ): false|\WP_Sitemaps_Provider {
+		// CMB2 is not yet availble in the `wp_sitemaps_add_provider` filter.
+		$disabled = ( get_option( Settings::NAME, [] )[ Settings::DISABLE_USER_ARCHIVE ] ?? false ) === 'on';
+
+		if ( 'users' === $name && $disabled ) {
+			return false;
+		}
+		return $provider;
 	}
 
 

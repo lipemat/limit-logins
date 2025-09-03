@@ -42,5 +42,6 @@ final class Security_Provider implements ServiceProviderInterface {
 		add_filter( 'rest_endpoints', fn( $a ) => Users::in()->disable_users_endpoint( $a ) );
 		add_filter( 'query_vars', fn( $a ) => Users::in()->disable_author_query_var( $a ), 1_000 );
 		add_filter( 'author_rewrite_rules', fn( $a ) => Users::in()->disable_author_archives( $a ) );
+		add_filter( 'wp_sitemaps_add_provider', fn( $a, $b ) => Users::in()->disable_user_sitemap( $a, $b ), 10, 2 );
 	}
 }

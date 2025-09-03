@@ -4,6 +4,7 @@ declare( strict_types=1 );
 namespace Lipe\Limit_Logins\Security;
 
 use Lipe\Limit_Logins\Settings;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * @author Mat Lipe
@@ -101,13 +102,23 @@ class UsersTest extends \WP_UnitTestCase {
 	}
 
 
-	/**
-	 * @dataProvider provideIllegalUsernames
-	 */
+	#[DataProvider( 'provideIllegalUsernames' )]
 	public function test_prevent_admin_username( string $username ): void {
 		$result = wp_create_user( $username, '$#sDGW@3wesd24EE', 'does@notmatter.com' );
 		$this->assertWPError( $result );
 		$this->assertSame( 'invalid_username', $result->get_error_code() );
+	}
+
+
+	public function test_disable_user_sitemap(): void {
+		$sitemap = wp_sitemaps_get_server()->registry->get_provider( 'users' );
+		$this->assertInstanceOf( \WP_Sitemaps_Users::class, $sitemap );
+
+		Settings::in()->update_option( Settings::DISABLE_USER_ARCHIVE, true );
+		$GLOBALS['wp_sitemaps'] = null; // Reset the sitemaps server to ensure it re-initializes.
+		wp_sitemaps_get_server()->init();
+		$sitemap = wp_sitemaps_get_server()->registry->get_provider( 'users' );
+		$this->assertNull( $sitemap );
 	}
 
 
