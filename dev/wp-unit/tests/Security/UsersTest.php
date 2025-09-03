@@ -122,16 +122,35 @@ class UsersTest extends \WP_UnitTestCase {
 	}
 
 
+	public function test_disable_author_links(): void {
+		$user = self::factory()->user->create_and_get( [
+			'user_login'   => 'iamuser',
+			'display_name' => 'I am user',
+			'user_url'     => 'https://example.com/author/iamuser',
+		] );
+		wp_set_current_user( $user->ID );
+		$GLOBALS['authordata'] = $user;
+		$this->assertFalse( Settings::in()->get_option( Settings::DISABLE_USER_ARCHIVE ) );
+
+		$this->assertSame( '<a href="https://example.com/author/iamuser" title="Visit I am user&#8217;s website" rel="author external">I am user</a>', get_the_author_link() );
+		$this->assertSame( 'http://limit-logins.loc/author/iamuser/', get_author_posts_url( $user->ID ) );
+
+		Settings::in()->update_option( Settings::DISABLE_USER_ARCHIVE, true );
+		$this->assertSame( get_the_author(), get_the_author_link() );
+		$this->assertSame( '', get_author_posts_url( $user->ID ) );
+	}
+
+
 	public static function provideIllegalUsernames(): array {
 		return [
-			[ 'admin' ],
-			[ 'administrator' ],
-			[ 'dev' ],
-			[ 'root' ],
-			[ 'superadmin' ],
-			[ 'webmaster' ],
-			[ 'sysadmin' ],
-			[ 'support' ],
+			'admin'         => [ 'username' => 'admin' ],
+			'administrator' => [ 'username' => 'administrator' ],
+			'dev'           => [ 'username' => 'dev' ],
+			'root'          => [ 'username' => 'root' ],
+			'superadmin'    => [ 'username' => 'superadmin' ],
+			'webmaster'     => [ 'username' => 'webmaster' ],
+			'sysadmin'      => [ 'username' => 'sysadmin' ],
+			'support'       => [ 'username' => 'support' ],
 		];
 	}
 }

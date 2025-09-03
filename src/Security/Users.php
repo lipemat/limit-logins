@@ -119,6 +119,25 @@ final class Users {
 	}
 
 
+	/**
+	 * Disable any links on the site to author archives which
+	 * are broken when the author archive is disabled.
+	 *
+	 * @filter author_link 10 1
+	 * @filter get_the_author_{$field} 10 1
+	 *
+	 * @param string $url - The URL to the author archive.
+	 *
+	 * @return string
+	 */
+	public function disable_author_links( string $url ): string {
+		if ( ! Settings::in()->get_option( Settings::DISABLE_USER_ARCHIVE, false ) ) {
+			return $url;
+		}
+		return '';
+	}
+
+
 	public static function in(): Users {
 		return container()->get( __CLASS__ );
 	}
