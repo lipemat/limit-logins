@@ -138,6 +138,20 @@ final class Users {
 	}
 
 
+	/**
+	 * Remove any exposed author information from the body classes.
+	 *
+	 * @filter body_class 10 1
+	 *
+	 * @param array<string> $classes - The body classes.
+	 *
+	 * @return array<string>
+	 */
+	public function remove_author_body_classes( array $classes ): array {
+		return \array_filter( $classes, fn( $css_class ) => ! \str_contains( $css_class, 'author-' ) );
+	}
+
+
 	public static function in(): Users {
 		return container()->get( __CLASS__ );
 	}

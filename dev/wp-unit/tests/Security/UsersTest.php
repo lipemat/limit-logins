@@ -141,6 +141,20 @@ class UsersTest extends \WP_UnitTestCase {
 	}
 
 
+	public function test_remove_body_classes(): void {
+		$user = self::factory()->user->create_and_get( [
+			'user_login'   => 'iamuser',
+			'display_name' => 'I am user',
+		] );
+		$this->go_to( get_author_posts_url( $user->ID ) );
+		$classes = get_body_class();
+		$this->assertContains( 'author', $classes );
+		foreach ( $classes as $class ) {
+			$this->assertStringNotContainsString( 'author-', $class );
+		}
+	}
+
+
 	public static function provideIllegalUsernames(): array {
 		return [
 			'admin'         => [ 'username' => 'admin' ],

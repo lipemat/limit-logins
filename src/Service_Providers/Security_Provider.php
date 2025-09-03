@@ -45,5 +45,6 @@ final class Security_Provider implements ServiceProviderInterface {
 		add_filter( 'wp_sitemaps_add_provider', fn( $a, $b ) => Users::in()->disable_user_sitemap( $a, $b ), 10, 2 );
 		add_filter( 'author_link', fn( $a ) => Users::in()->disable_author_links( $a ) );
 		add_filter( 'get_the_author_user_url', fn( $a ) => Users::in()->disable_author_links( $a ) );
+		add_filter( 'body_class', fn( $a ) => Users::in()->remove_author_body_classes( $a ) );
 	}
 }
