@@ -1,4 +1,4 @@
-# @version 2.1.0
+# @version 2.5.0
 
 includes:
     # Include the lipemat phpstan rules.
@@ -8,10 +8,10 @@ parameters:
     level: 8
     lipemat:
         noExtends: true
-    strictRules:
-        allRules: true
+        allowedToBeExtended:
     paths:
         - src
+        - limit-logins.php
     bootstrapFiles:
         - ../../autoload.php
     scanFiles:
