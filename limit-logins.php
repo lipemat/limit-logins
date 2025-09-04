@@ -24,7 +24,7 @@ use Lipe\Limit_Logins\Authenticate\Xmlrpc;
 use Lipe\Limit_Logins\Email\Preview;
 use Lipe\Limit_Logins\WP_Cli\Commands;
 
-const PATH = __DIR__;
+const LIMIT_LOGINS_PATH = __DIR__;
 
 add_action( 'plugins_loaded', function() {
 	Attempts::init();

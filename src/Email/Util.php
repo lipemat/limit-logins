@@ -6,8 +6,7 @@ namespace Lipe\Limit_Logins\Email;
 use Lipe\Lib\Util\Actions;
 use Lipe\Limit_Logins\Settings;
 use Lipe\Limit_Logins\Traits\Singleton;
-use Lipe\Limit_Logins\Utils;
-use const Lipe\Limit_Logins\PATH;
+use const Lipe\Limit_Logins\LIMIT_LOGINS_PATH;
 
 /**
  * @author  Mat Lipe
@@ -56,9 +55,9 @@ final class Util {
 	 */
 	public function get_template( string $slug ): string {
 		ob_start();
-		require PATH . '/templates/email/header.php';
-		require PATH . '/templates/email/' . $slug . '.php';
-		require PATH . '/templates/email/footer.php';
+		require LIMIT_LOGINS_PATH . '/templates/email/header.php';
+		require LIMIT_LOGINS_PATH . '/templates/email/' . $slug . '.php';
+		require LIMIT_LOGINS_PATH . '/templates/email/footer.php';
 
 		return (string) ob_get_clean();
 	}
