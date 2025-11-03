@@ -42,7 +42,7 @@ final class Security_Provider implements ServiceProviderInterface {
 
 
 	private function Users(): void {
-		add_filter( 'illegal_user_logins', fn( $a ) => Users::in()->prevent_admin_username( $a ) );
+		add_filter( 'illegal_user_logins', fn( $a ) => Users::in()->prevent_illegal_usernames( $a ) );
 		add_filter( 'rest_endpoints', fn( $a ) => Users::in()->disable_users_endpoint( $a ) );
 		add_filter( 'rest_request_after_callbacks', fn( $a ) => Users::in()->remove_author_links_from_rest_responses( $a ) );
 		add_filter( 'query_vars', fn( $a ) => Users::in()->disable_author_query_var( $a ), 1_000 );

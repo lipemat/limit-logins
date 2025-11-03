@@ -13,6 +13,56 @@ use function Lipe\Limit_Logins\container;
  */
 final class Users {
 	/**
+	 * Usernames which are commonly targeted by attackers and are be allowed.
+	 *
+	 * @var array<string>
+	 */
+	private const ILLEGAL_USERNAMES = [
+		'111',
+		'123',
+		'123123',
+		'123456',
+		'aaaaa',
+		'abc',
+		'acbd',
+		'admin',
+		'admin1',
+		'admin123',
+		'admin2',
+		'administrator',
+		'demo',
+		'dev',
+		'developer',
+		'digitaladmin',
+		'gpuser',
+		'moderator',
+		'qwerty',
+		'root',
+		'sample',
+		'server',
+		'suadmin',
+		'superadmin',
+		'support',
+		'sysadmin',
+		'test',
+		'test1',
+		'test123',
+		'test1234',
+		'test2',
+		'test2user',
+		'tester',
+		'testing',
+		'testtest',
+		'testuser',
+		'user',
+		'user1',
+		'webmaster',
+		'wordpress_administrator',
+		'wptest',
+	];
+
+
+	/**
 	 * Disable the users' endpoints for any user who does not have
 	 * edit_users capabilities.
 	 *
@@ -64,17 +114,8 @@ final class Users {
 	 *
 	 * @return array<string>
 	 */
-	public function prevent_admin_username( array $illegal ): array {
-		return \array_merge( $illegal, [
-			'admin',
-			'administrator',
-			'dev',
-			'root',
-			'superadmin',
-			'support',
-			'sysadmin',
-			'webmaster',
-		] );
+	public function prevent_illegal_usernames( array $illegal ): array {
+		return \array_merge( $illegal, self::ILLEGAL_USERNAMES );
 	}
 
 
@@ -125,7 +166,7 @@ final class Users {
 	 * @filter wp_sitemaps_add_provider 10 2
 	 *
 	 * @param false|\WP_Sitemaps_Provider $provider
-	 * @param string                $name
+	 * @param string                      $name
 	 *
 	 * @return false|\WP_Sitemaps_Provider
 	 */
