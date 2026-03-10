@@ -40,7 +40,9 @@ final class Oembed_Endpoint {
 			return;
 		}
 
+		// WP 6.9 changed priority to 4. Must remove both 10 and 4.
 		remove_action( 'wp_head', 'wp_oembed_add_discovery_links' );
+		remove_action( 'wp_head', 'wp_oembed_add_discovery_links', 4 );
 		add_filter( 'rest_endpoints', function( $endpoints ) {
 			unset( $endpoints['/oembed/1.0/embed'] );
 			return $endpoints;

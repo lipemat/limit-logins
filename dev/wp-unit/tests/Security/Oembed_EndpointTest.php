@@ -105,6 +105,6 @@ class Oembed_EndpointTest extends \WP_Test_REST_TestCase {
 		$this->assertArrayHasKey( '/oembed/1.0/embed', $routes );
 		$this->assertArrayHasKey( '/oembed/1.0/proxy', $routes );
 
-		$this->assertSame( 10, has_action( 'wp_head', 'wp_oembed_add_discovery_links' ) );
+		$this->assertContains( has_action( 'wp_head', 'wp_oembed_add_discovery_links' ), [ 10, 4 ] );
 	}
 }
