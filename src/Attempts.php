@@ -66,6 +66,9 @@ final class Attempts {
 	public function get_existing( string $username ): ?Attempt {
 		$attempts = $this->clear_expired( $this->get_all() );
 		$existing = $this->get_existing_index( $attempts, $username );
+		if ( null === $existing ) {
+			return null;
+		}
 
 		return $attempts[ $existing ] ?? null;
 	}
