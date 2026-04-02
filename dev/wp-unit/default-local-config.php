@@ -13,7 +13,7 @@ $root = dirname( __DIR__, 8 );
 define( 'BOOTSTRAP', 'E:/SVN/wp-unit/includes/bootstrap.php' );
 define( 'DB_HOST', 'localhost' );
 define( 'DB_NAME', 'wordpress' );
-define( 'DB_PASSWORD', 'hle1.qRA8W[BnR03' );
+define( 'DB_PASSWORD', getenv( 'WP_LIBS_DB_PASS' ) );
 define( 'DB_USER', 'wplibs' );
 define( 'DOMAIN_CURRENT_SITE', 'limit-logins.loc' );
 define( 'WP_SITE_ROOT', $root . DIRECTORY_SEPARATOR );
