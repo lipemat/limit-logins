@@ -101,6 +101,15 @@ final class Users {
 		) {
 			return $result;
 		}
+		if ( \wp_is_numeric_array( $result->get_data() ) ) {
+			$result->set_data( \array_map( function( mixed $item ): mixed {
+				if ( ! \is_array( $item ) ) {
+					return $item;
+				}
+				unset( $item['_links']['author'] );
+				return $item;
+			}, $result->get_data() ) );
+		}
 
 		$result->remove_link( 'author' );
 		return $result;

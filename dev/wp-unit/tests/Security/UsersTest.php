@@ -66,6 +66,27 @@ class UsersTest extends \WP_Test_REST_TestCase {
 	}
 
 
+	public function test_disable_author_links_on_media_responses(): void {
+		$user = self::factory()->user->create_and_get();
+		$post = self::factory()->attachment->create_and_get( [
+			'post_author' => $user->ID,
+		] );
+		$response = $this->get_response( '/wp/v2/media/' . $post->ID, [], 'GET' );
+		$this->assertArrayHasKey( 'author', $response->get_links() );
+
+		$response = $this->get_response( '/wp/v2/media', [], 'GET' );
+		$this->assertArrayHasKey( 'author', $response->get_data()[0]['_links'] );
+
+		Settings::in()->update_option( Settings::DISABLE_USER_REST, true );
+		unset( $GLOBALS['wp_rest_server'] );
+		$response = $this->get_response( '/wp/v2/media/' . $post->ID, [], 'GET' );
+		$this->assertArrayNotHasKey( 'author', $response->get_links() );
+
+		$response = $this->get_response( '/wp/v2/media', [], 'GET' );
+		$this->assertArrayNotHasKey( 'author', $response->get_data()[0]['_links'] );
+	}
+
+
 	public function test_disable_author_query_var(): void {
 		$wp = new \WP();
 		$this->assertFalse( Settings::in()->get_option( Settings::DISABLE_USER_ARCHIVE ) );
@@ -173,47 +194,47 @@ class UsersTest extends \WP_Test_REST_TestCase {
 
 	public static function provideIllegalUsernames(): array {
 		return [
-			'admin'                    => [ 'username' => 'admin' ],
-			'administrator'            => [ 'username' => 'administrator' ],
-			'111'                      => [ 'username' => '111' ],
-			'123'                      => [ 'username' => '123' ],
-			'123123'                   => [ 'username' => '123123' ],
-			'123456'                   => [ 'username' => '123456' ],
-			'aaaaa'                    => [ 'username' => 'aaaaa' ],
-			'abc'                      => [ 'username' => 'abc' ],
-			'acbd'                     => [ 'username' => 'acbd' ],
-			'admin1'                   => [ 'username' => 'admin1' ],
-			'admin123'                 => [ 'username' => 'admin123' ],
-			'admin2'                   => [ 'username' => 'admin2' ],
-			'demo'                     => [ 'username' => 'demo' ],
-			'dev'                      => [ 'username' => 'dev' ],
-			'developer'                => [ 'username' => 'developer' ],
-			'digitaladmin'             => [ 'username' => 'digitaladmin' ],
-			'gpuser'                   => [ 'username' => 'gpuser' ],
-			'qwerty'                   => [ 'username' => 'qwerty' ],
-			'moderator'                => [ 'username' => 'moderator' ],
-			'root'                     => [ 'username' => 'root' ],
-			'sample'                   => [ 'username' => 'sample' ],
-			'server'                   => [ 'username' => 'server' ],
-			'suadmin'                  => [ 'username' => 'suadmin' ],
-			'superadmin'               => [ 'username' => 'superadmin' ],
-			'support'                  => [ 'username' => 'support' ],
-			'sysadmin'                 => [ 'username' => 'sysadmin' ],
-			'test'                     => [ 'username' => 'test' ],
-			'test2user'                => [ 'username' => 'test2user' ],
-			'test1'                    => [ 'username' => 'test1' ],
-			'test123'                  => [ 'username' => 'test123' ],
-			'test1234'                 => [ 'username' => 'test1234' ],
-			'test2'                    => [ 'username' => 'test2' ],
-			'tester'                   => [ 'username' => 'tester' ],
-			'testing'                  => [ 'username' => 'testing' ],
-			'testtest'                 => [ 'username' => 'testtest' ],
-			'testuser'                 => [ 'username' => 'testuser' ],
-			'user'                     => [ 'username' => 'user' ],
-			'user1'                    => [ 'username' => 'user1' ],
-			'webmaster'                => [ 'username' => 'webmaster' ],
-			'wordpress-administrator'  => [ 'username' => 'wordpress_administrator' ],
-			'wptest'                   => [ 'username' => 'wptest' ],
+			'admin'                   => [ 'username' => 'admin' ],
+			'administrator'           => [ 'username' => 'administrator' ],
+			'111'                     => [ 'username' => '111' ],
+			'123'                     => [ 'username' => '123' ],
+			'123123'                  => [ 'username' => '123123' ],
+			'123456'                  => [ 'username' => '123456' ],
+			'aaaaa'                   => [ 'username' => 'aaaaa' ],
+			'abc'                     => [ 'username' => 'abc' ],
+			'acbd'                    => [ 'username' => 'acbd' ],
+			'admin1'                  => [ 'username' => 'admin1' ],
+			'admin123'                => [ 'username' => 'admin123' ],
+			'admin2'                  => [ 'username' => 'admin2' ],
+			'demo'                    => [ 'username' => 'demo' ],
+			'dev'                     => [ 'username' => 'dev' ],
+			'developer'               => [ 'username' => 'developer' ],
+			'digitaladmin'            => [ 'username' => 'digitaladmin' ],
+			'gpuser'                  => [ 'username' => 'gpuser' ],
+			'qwerty'                  => [ 'username' => 'qwerty' ],
+			'moderator'               => [ 'username' => 'moderator' ],
+			'root'                    => [ 'username' => 'root' ],
+			'sample'                  => [ 'username' => 'sample' ],
+			'server'                  => [ 'username' => 'server' ],
+			'suadmin'                 => [ 'username' => 'suadmin' ],
+			'superadmin'              => [ 'username' => 'superadmin' ],
+			'support'                 => [ 'username' => 'support' ],
+			'sysadmin'                => [ 'username' => 'sysadmin' ],
+			'test'                    => [ 'username' => 'test' ],
+			'test2user'               => [ 'username' => 'test2user' ],
+			'test1'                   => [ 'username' => 'test1' ],
+			'test123'                 => [ 'username' => 'test123' ],
+			'test1234'                => [ 'username' => 'test1234' ],
+			'test2'                   => [ 'username' => 'test2' ],
+			'tester'                  => [ 'username' => 'tester' ],
+			'testing'                 => [ 'username' => 'testing' ],
+			'testtest'                => [ 'username' => 'testtest' ],
+			'testuser'                => [ 'username' => 'testuser' ],
+			'user'                    => [ 'username' => 'user' ],
+			'user1'                   => [ 'username' => 'user1' ],
+			'webmaster'               => [ 'username' => 'webmaster' ],
+			'wordpress-administrator' => [ 'username' => 'wordpress_administrator' ],
+			'wptest'                  => [ 'username' => 'wptest' ],
 		];
 	}
 }
