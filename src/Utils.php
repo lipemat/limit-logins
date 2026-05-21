@@ -53,6 +53,32 @@ final class Utils {
 
 
 	/**
+	 *
+	 * @template TKey
+	 * @template T
+	 *
+	 * @todo Switch to `array_find_key` when PHP 8.4 is available.
+	 *
+	 * @param callable( T, TKey ):bool $callback - Callback to make comparisons and
+	 *                                           return true for a match.
+	 *
+	 * @phpstan-return TKey|null
+	 *
+	 * @param array<TKey, T>           $items    - List of items to look through.
+	 *
+	 * @return int|null|string
+	 */
+	public function find_index( array $items, callable $callback ) {
+		foreach ( $items as $k => $item ) {
+			if ( true === $callback( $item, $k ) ) {
+				return $k;
+			}
+		}
+		return null;
+	}
+
+
+	/**
 	 * @todo Switch to \Lipe\Lib\Util\Testing::exit() when we can require 5.0.0
 	 * @phpstan-return  never
 	 */

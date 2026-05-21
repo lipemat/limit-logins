@@ -3,7 +3,6 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins;
 
-use Lipe\Lib\Util\Arrays;
 use Lipe\Limit_Logins\Attempts\Attempt;
 use Lipe\Limit_Logins\Attempts\Gateway;
 use Lipe\Limit_Logins\Authenticate\Unlock_Link;
@@ -81,10 +80,16 @@ final class Attempts {
 	 */
 	public function remove_block( string $username ): void {
 		$attempts = $this->get_all();
-		$existing = Arrays::in()->find_index( $attempts, fn( $attempt ) => $attempt->username === $username );
+		if ( \function_exists( 'array_find_key' ) ) {
+			// phpcs:ignore PHPCompatibility.FunctionUse.NewFunctions.array_find_keyFound
+			$existing = \array_find_key( $attempts, fn( $attempt ) => $attempt->username === $username );
+		} else {
+			$existing = Utils::in()->find_index( $attempts, fn( $attempt ) => $attempt->username === $username );
+		}
+
 		if ( null !== $existing ) {
 			unset( $attempts[ $existing ] );
-			Settings::in()->update_option( Settings::LOGGED_FAILURES, \array_map( fn( $attempt ) => $attempt->jsonSerialize(), \array_values( $attempts ) ) );
+			Settings::in()->update_option( Settings::LOGGED_FAILURES, \array_map( fn( Attempt $attempt ) => $attempt->jsonSerialize(), \array_values( $attempts ) ) );
 		}
 	}
 

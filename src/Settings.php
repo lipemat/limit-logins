@@ -97,7 +97,7 @@ final class Settings implements \ArrayAccess {
 			      'maxlength' => 60,
 		      ] );
 		$group->field( Attempt::GATEWAY, 'Gateway' )
-		      ->select( [ $this, 'get_gateway_options' ] );
+		      ->select( $this->get_gateway_options( ... ) );
 		$group->field( Attempt::COUNT, 'Count' )
 		      ->text_number( 1, 0, Attempts::ALLOWED_ATTEMPTS );
 		$group->field( Attempt::EXPIRES, 'Expires' )
@@ -123,7 +123,7 @@ final class Settings implements \ArrayAccess {
 	/**
 	 * @return array<string, string>
 	 */
-	public function get_gateway_options(): array {
+	private function get_gateway_options(): array {
 		$gateways = \array_map( fn( $gateway ) => $gateway->value, Gateway::cases() );
 		return \array_combine( $gateways, $gateways );
 	}
