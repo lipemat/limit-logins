@@ -63,9 +63,18 @@ final class Settings implements \ArrayAccess {
 		$box->field( self::CONTACT, 'Contact Page' )
 		    ->text_url()
 		    ->description( 'Link included in blocked emails.' );
-		$box->field( self::EMAIL, 'Sender Email' )
-		    ->text_email()
-		    ->description( $this->email_description() );
+		$email = $box->field( self::EMAIL, 'Sender Email' )
+		             ->text_email();
+		if ( \method_exists( $email, 'description_cb' ) ) {
+			$email->description_cb( $this->email_description( ... ) );
+		} else {
+			$email->description( ( function(): string {
+				if ( is_admin() ) {
+					return $this->email_description();
+				}
+				return '';
+			} )() );
+		}
 		$box->field( self::DISABLE_USER_ARCHIVE, 'Disable User Archives' )
 		    ->true_false()
 		    ->description( 'Prevent the user archive pages from being accessed and exposing usernames.' )
