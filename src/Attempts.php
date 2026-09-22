@@ -16,8 +16,8 @@ use Lipe\Limit_Logins\Traits\Singleton;
 final class Attempts {
 	use Singleton;
 
-	public const  ALLOWED_ATTEMPTS = 5;
-	public const  DURATION         = HOUR_IN_SECONDS * 12;
+	public const int ALLOWED_ATTEMPTS = 5;
+	public const int DURATION         = HOUR_IN_SECONDS * 12;
 
 
 	private function hook(): void {
@@ -74,6 +74,15 @@ final class Attempts {
 
 
 	/**
+	 * Is the username or the current IP blocked?
+	 */
+	public function is_blocked( string $username ): bool {
+		$existing = $this->get_existing( $username );
+		return $existing instanceof Attempt && $existing->is_blocked();
+	}
+
+
+	/**
 	 * Remove a block for a given username.
 	 *
 	 * Does not match the IP, just the username.
@@ -102,7 +111,7 @@ final class Attempts {
 	public function get_all(): array {
 		$attempts = Settings::in()->get_option( Settings::LOGGED_FAILURES, [] );
 		$attempts = \array_filter( $attempts, function( $attempt ) {
-			if ( ! isset( $attempt[ Attempt::USERNAME ] ) || ! isset( $attempt[ Attempt::IP ] ) ) {
+			if ( ! isset( $attempt[ Attempt::USERNAME ], $attempt[ Attempt::IP ] ) ) {
 				return false;
 			}
 			return ! ( '' === $attempt[ Attempt::USERNAME ] && '' === $attempt[ Attempt::IP ] );
@@ -139,8 +148,9 @@ final class Attempts {
 	 */
 	private function get_existing_index( array $attempts, string $username ): ?int {
 		$ip = Utils::in()->get_current_ip();
-		$found = \array_filter( $attempts, fn( $attempt ) => $attempt->username === $username || $attempt->ip === $ip );
+		$found = \array_filter( $attempts, fn( Attempt $attempt ) => $attempt->username === $username || $attempt->ip === $ip );
 		foreach ( $found as $i => $attempt ) {
+			/** @var Attempt $attempt */
 			if ( $attempt->is_blocked() ) {
 				return $i;
 			}

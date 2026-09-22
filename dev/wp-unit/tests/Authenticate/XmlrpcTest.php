@@ -12,6 +12,47 @@ use Lipe\Limit_Logins\Authenticate;
  *
  */
 class XmlrpcTest extends \WP_XMLRPC_UnitTestCase {
+	protected function tearDown(): void {
+		unset( $GLOBALS['wp_xmlrpc_server'] );
+		parent::tearDown();
+	}
+
+
+	/**
+	 * @throws \TestHelperException
+	 */
+	public function test_blocked_skips_password_check(): void {
+		/** @var \Fixture_Blocked_User $fixture */
+		$fixture = require \dirname( __DIR__, 2 ) . '/fixtures/blocked-user.php';
+		\WP_Application_Passwords::create_new_application_password( $fixture->user->ID, [ 'name' => __METHOD__ ] );
+		// Check application passwords as a real XML-RPC request does.
+		add_filter( 'application_password_is_api_request', '__return_true' );
+		$GLOBALS['wp_xmlrpc_server'] = $this->myxmlrpcserver;
+		$statuses = [];
+		add_filter( 'status_header', function( string $header, int $code ) use ( &$statuses ): string {
+			$statuses[] = $code;
+			return $header;
+		}, 10, 2 );
+		$checks = did_filter( 'check_password' );
+		$app_checks = did_action( 'application_password_failed_authentication' );
+
+		$this->assertFalse( $this->myxmlrpcserver->login( $fixture->user->user_login, 'not valid password' ) );
+		$this->assertSame( 'Too many failed login attempts.', $this->myxmlrpcserver->error->message );
+		$this->assertSame( Authenticate::CODE_BLOCKED, $this->myxmlrpcserver->error->code );
+		$this->assertSame( [ 403 ], $statuses );
+		$this->assertSame( $checks, did_filter( 'check_password' ) );
+		$this->assertSame( $app_checks, did_action( 'application_password_failed_authentication' ) );
+
+		// Both passwords are checked once the block is removed.
+		Attempts::in()->remove_block( $fixture->user->user_login );
+		set_private_property( $this->myxmlrpcserver, 'auth_failed', false );
+		$this->assertFalse( $this->myxmlrpcserver->login( $fixture->user->user_login, 'not valid password' ) );
+		$this->assertSame( 'Incorrect username or password.', $this->myxmlrpcserver->error->message );
+		$this->assertSame( $checks + 1, did_filter( 'check_password' ) );
+		$this->assertSame( $app_checks + 1, did_action( 'application_password_failed_authentication' ) );
+	}
+
+
 	public function test_adjust_xmlrpc_error(): void {
 		$password = wp_generate_password();
 		$user = self::factory()->user->create_and_get( [
