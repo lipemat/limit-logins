@@ -182,9 +182,7 @@ final class Users {
 	 * @return false|\WP_Sitemaps_Provider
 	 */
 	public function disable_user_sitemap( false|\WP_Sitemaps_Provider $provider, string $name ): false|\WP_Sitemaps_Provider {
-		// CMB2 is not yet availble in the `wp_sitemaps_add_provider` filter.
-		$disabled = ( get_option( Settings::NAME, [] )[ Settings::DISABLE_USER_ARCHIVE ] ?? false ) === 'on';
-		if ( 'users' === $name && $disabled ) {
+		if ( 'users' === $name && Settings::in()->get_option( Settings::DISABLE_USER_ARCHIVE, false ) ) {
 			return false;
 		}
 		return $provider;

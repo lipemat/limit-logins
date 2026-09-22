@@ -36,21 +36,19 @@ final class Settings implements \ArrayAccess {
 	use Settings_Trait;
 	use Singleton;
 
-	public const NAME = 'lipe/limit-logins/settings/limit-logins';
+	public const string NAME = 'lipe/limit-logins/settings/limit-logins';
 
-	public const CLEAR                = 'lipe/limit-logins/settings/limit-logins/clear';
-	public const CONTACT              = 'lipe/limit-logins/settings/limit-logins/contact';
-	public const DISABLE_OEMBED       = 'lipe/limit-logins/settings/limit-logins/disable-oembed';
-	public const DISABLE_USER_ARCHIVE = 'lipe/limit-logins/settings/limit-logins/disable-archive';
-	public const DISABLE_USER_REST    = 'lipe/limit-logins/settings/limit-logins/disable-endpoint';
-	public const EMAIL                = 'lipe/limit-logins/settings/limit-logins/email';
-	public const LOGGED_FAILURES      = 'lipe/limit-logins/settings/limit-logins/logged-failures';
+	public const string CLEAR                = 'lipe/limit-logins/settings/limit-logins/clear';
+	public const string CONTACT              = 'lipe/limit-logins/settings/limit-logins/contact';
+	public const string DISABLE_OEMBED       = 'lipe/limit-logins/settings/limit-logins/disable-oembed';
+	public const string DISABLE_USER_ARCHIVE = 'lipe/limit-logins/settings/limit-logins/disable-archive';
+	public const string DISABLE_USER_REST    = 'lipe/limit-logins/settings/limit-logins/disable-endpoint';
+	public const string EMAIL                = 'lipe/limit-logins/settings/limit-logins/email';
+	public const string LOGGED_FAILURES      = 'lipe/limit-logins/settings/limit-logins/logged-failures';
 
 
 	private function hook(): void {
-		add_action( 'cmb2_init', function() {
-			$this->register();
-		} );
+		add_action( 'cmb2_init', $this->register( ... ) );
 
 		Api::init_once();
 	}
@@ -156,5 +154,42 @@ final class Settings implements \ArrayAccess {
 		if ( false === $result ) {
 			throw new \ErrorException( 'Failed to clear limit login attempt options.' );
 		}
+	}
+
+
+	/**
+	 * Get an option using the WP core options system so we can retrieve data
+	 * before CMB2 is available.
+	 *
+	 * @template T of key-of<KEYS>
+	 * @template D of mixed
+	 *
+	 * @phpstan-param T $key
+	 * @phpstan-param D $default_value
+	 *
+	 * @phpstan-return D|KEYS[T]
+	 */
+	public function get_option( string $key, mixed $default_value = null ) {
+		$settings = get_option( self::NAME, $default_value ?? [] );
+		if ( ! \is_array( $settings ) || ! \array_key_exists( $key, $settings ) ) {
+			if ( null === $default_value ) {
+				$default_value = match ( $key ) {
+					self::CLEAR,
+					self::DISABLE_OEMBED,
+					self::DISABLE_USER_REST,
+					self::DISABLE_USER_ARCHIVE => false,
+					self::CONTACT,
+					self::EMAIL                => '',
+					self::LOGGED_FAILURES      => []
+				};
+			}
+			return $default_value;
+		}
+
+		if ( 'on' === $settings[ $key ] ) {
+			return true;
+		}
+
+		return $settings[ $key ];
 	}
 }
