@@ -6,6 +6,11 @@ namespace Lipe\Limit_Logins\Attempts;
 use Lipe\Limit_Logins\Utils;
 
 enum Gateway: string {
+	/**
+	 * Nonce field WooCommerce puts on its login form.
+	 */
+	public const string WOO_NONCE_FIELD = 'woocommerce-login-nonce';
+
 	case REST_API  = 'rest-api';
 	case WP_LOGIN  = 'wp-login';
 	case WOO_LOGIN = 'woo-login';
@@ -14,7 +19,7 @@ enum Gateway: string {
 
 	public static function detect(): self {
 		//phpcs:ignore WordPress.Security.NonceVerification
-		if ( isset( $_REQUEST['woocommerce-login-nonce'] ) ) {
+		if ( isset( $_REQUEST[ self::WOO_NONCE_FIELD ] ) ) {
 			return self::WOO_LOGIN;
 		}
 
