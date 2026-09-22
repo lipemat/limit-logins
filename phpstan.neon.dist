@@ -1,19 +1,19 @@
-# @version 2.5.0
+# @version 4.0.0
 
 includes:
-    # Include the lipemat phpstan rules.
-    - %rootDir%/../../../rules.neon
+  # Include the lipemat phpstan rules.
+  - %rootDir%/../../../rules.neon
 
 parameters:
-    level: 8
-    lipemat:
-        noExtends: true
-        allowedToBeExtended:
-    paths:
-        - src
-        - limit-logins.php
-    bootstrapFiles:
-        - ../../autoload.php
-    scanFiles:
-        - %rootDir%/../../../stubs/cmb2/cmb2-2.10.php
-        - %rootDir%/../../php-stubs/wp-cli-stubs/wp-cli-stubs.php
+  level: 8
+  lipemat:
+    noExtends: true
+    allowedToBeExtended:
+  paths:
+    - src
+    - limit-logins.php
+  bootstrapFiles:
+    - ../../autoload.php
+  scanFiles:
+    - %rootDir%/../../../stubs/cmb2/cmb2-2.10.php
+    - %rootDir%/../../php-stubs/wp-cli-stubs/wp-cli-stubs.php

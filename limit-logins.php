@@ -13,7 +13,7 @@ namespace Lipe\Limit_Logins;
  * License: MIT
  * Network: false
  * Requires at least: 6.4.0
- * Requires PHP: 8.2.0
+ * Requires PHP: 8.3.0
  * Update URI: false
  */
 

@@ -1,9 +1,13 @@
 <?xml version="1.0"?>
-<ruleset name="Limit Logins - Rules">
+<ruleset
+	name="Starting Point - Rules"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/squizlabs/PHP_CodeSniffer/refs/heads/master/phpcs.xsd"
+>
 	<!-- See https://github.com/squizlabs/PHP_CodeSniffer/wiki/Annotated-Ruleset -->
 
 	<description>Ruleset for Limit Logins</description>
-	<version>4.3.0</version>
+	<!-- Version: 4.4.0 -->
 
 	<!-- Include when not specified -->
 	<file>./</file>
@@ -18,7 +22,7 @@
 	<config name="minimum_wp_version" value="6.4" />
 
 	<!-- @see https://github.com/PHPCompatibility/PHPCompatibilityWP#how-to-use -->
-	<config name="testVersion" value="8.2-" />
+	<config name="testVersion" value="8.3-" />
 
 	<rule ref="Lipe" />
 

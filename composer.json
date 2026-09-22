@@ -7,7 +7,7 @@
   "require": {
     "lipemat/cmb2": "^2.11.0.4",
     "lipemat/wordpress-libs": ">= 6.1.0 || dev-develop@dev",
-    "php": ">=8.2",
+    "php": ">=8.3",
     "pimple/pimple": "^3.5"
   },
   "autoload": {
