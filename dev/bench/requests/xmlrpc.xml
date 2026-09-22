@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<methodCall>
+	<methodName>wp.getUsersBlogs</methodName>
+	<params>
+		<param><value><string>limitloginsbench</string></value></param>
+		<param><value><string>not-the-password</string></value></param>
+	</params>
+</methodCall>
