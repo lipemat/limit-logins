@@ -63,18 +63,9 @@ final class Settings implements \ArrayAccess {
 		$box->field( self::CONTACT, 'Contact Page' )
 		    ->text_url()
 		    ->description( 'Link included in blocked emails.' );
-		$email = $box->field( self::EMAIL, 'Sender Email' )
-		             ->text_email();
-		if ( \method_exists( $email, 'description_cb' ) ) {
-			$email->description_cb( $this->email_description( ... ) );
-		} else {
-			$email->description( ( function(): string {
-				if ( is_admin() ) {
-					return $this->email_description();
-				}
-				return '';
-			} )() );
-		}
+		$box->field( self::EMAIL, 'Sender Email' )
+		    ->text_email()
+		    ->description_cb( $this->email_description( ... ) );
 		$box->field( self::DISABLE_USER_ARCHIVE, 'Disable User Archives' )
 		    ->true_false()
 		    ->description( 'Prevent the user archive pages from being accessed and exposing usernames.' )
@@ -88,10 +79,7 @@ final class Settings implements \ArrayAccess {
 
 		$group = $box->group( self::LOGGED_FAILURES, 'Logged Failures' );
 		// Hide the up and down buttons to keep rows short.
-		// @phpstan-ignore function.alreadyNarrowedType
-		if ( \method_exists( $group, 'before_group' ) ) {
-			$group->before_group( '<style>.cmb-group-table .cmb-group-table-control a.move-up{ display: none !important; }.cmb-group-table .cmb-group-table-control a.move-down{ display: none !important; }</style>' );
-		}
+		$group->before_group( '<style>.cmb-group-table .cmb-group-table-control a.move-up{ display: none !important; }.cmb-group-table .cmb-group-table-control a.move-down{ display: none !important; }</style>' );
 		$group->layout( 'table' )->repeatable( true, 'Add Failure' );
 
 		$group->field( Attempt::IP, 'IP' )
