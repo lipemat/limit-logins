@@ -18,7 +18,7 @@ for ( $i = 0; $i < Attempts::ALLOWED_ATTEMPTS; $i ++ ) {
 $result = wp_authenticate( $user->user_login, $password );
 $this->assertWPError( $result );
 $this->assertSame( 'blocked', $result->get_error_code() );
-$this->assertSame( call_private_method( Authenticate::in(), 'get_error' ), $result->get_error_message() );
+$this->assertSame( Authenticate::in()->get_blocked_message(), $result->get_error_message() );
 
 $attempt = Attempts::in()->get_existing( $user->user_login );
 $this->assertTrue( $attempt->is_blocked() );

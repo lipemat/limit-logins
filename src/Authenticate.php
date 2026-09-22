@@ -58,7 +58,7 @@ final class Authenticate {
 				$this->callbacks_to_restore[ $callback ] = $priority;
 			}
 		}
-		return new \WP_Error( self::CODE_BLOCKED, $this->get_error() );
+		return new \WP_Error( self::CODE_BLOCKED, $this->get_blocked_message() );
 	}
 
 
@@ -73,7 +73,7 @@ final class Authenticate {
 			if ( '' !== $username ) {
 				status_header( 403 );
 			}
-			return new \WP_Error( self::CODE_BLOCKED, $this->get_error() );
+			return new \WP_Error( self::CODE_BLOCKED, $this->get_blocked_message() );
 		}
 
 		return $user;
@@ -97,12 +97,10 @@ final class Authenticate {
 	}
 
 
-	private function get_error(): string {
-		$contact = Settings::in()->get_option( Settings::CONTACT, '' );
-		if ( '' === $contact ) {
-			return '<strong>ERROR:</strong> Too many failed login attempts.';
-		}
-
+	/**
+	 * Message shown for a blocked attempt on every gateway.
+	 */
+	public function get_blocked_message(): string {
 		return '<strong>ERROR:</strong> Too many failed login attempts.<br />An email has been sent to the email on file with more information.';
 	}
 }

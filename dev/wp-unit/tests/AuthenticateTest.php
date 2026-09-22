@@ -143,7 +143,7 @@ class AuthenticateTest extends \WP_UnitTestCase {
 		$result = wp_signon( $credentials );
 		$this->assertInstanceOf( \WP_Error::class, $result );
 		$this->assertSame( Authenticate::CODE_BLOCKED, $result->get_error_code() );
-		$this->assertSame( call_private_method( Authenticate::in(), 'get_error' ), $result->get_error_message() );
+		$this->assertSame( Authenticate::in()->get_blocked_message(), $result->get_error_message() );
 		$this->assertSame( $checks, did_filter( 'check_password' ), 'The password was checked.' );
 		$this->assertSame( [ 403 ], $this->statuses );
 		$this->assertSame( [], $this->writes );

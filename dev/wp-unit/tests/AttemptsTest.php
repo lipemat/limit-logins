@@ -192,6 +192,6 @@ class AttemptsTest extends \WP_Test_REST_TestCase {
 
 
 	private function tooManyError(): string {
-		return call_private_method( Authenticate::in(), 'get_error' );
+		return Authenticate::in()->get_blocked_message();
 	}
 }

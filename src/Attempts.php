@@ -106,6 +106,9 @@ final class Attempts {
 	/**
 	 * Get all attempts from options translated into Attempt objects.
 	 *
+	 * Incomplete rows are dropped or defaulted, so hand edited settings
+	 * never turn into warnings.
+	 *
 	 * @return list<Attempt>
 	 */
 	public function get_all(): array {
