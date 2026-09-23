@@ -3,7 +3,6 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins;
 
-use Lipe\Lib\Api\Api;
 use Lipe\Lib\CMB2\Options_Page;
 use Lipe\Lib\Settings\Settings_Trait;
 use Lipe\Limit_Logins\Attempts\Attempt;
@@ -52,9 +51,20 @@ final class Settings implements \ArrayAccess {
 	 */
 	public const string LOGGED_FAILURES = 'lipe/limit-logins/settings/limit-logins/logged-failures';
 
+	/**
+	 * Field ID of the checkbox which runs the legacy failures migration.
+	 *
+	 * Never stored, as the save is the whole point of the field.
+	 */
+	public const string MIGRATE_FAILURES = 'lipe/limit-logins/settings/limit-logins/migrate-failures';
+
 
 	private function hook(): void {
 		add_action( 'cmb2_init', $this->register( ... ) );
+		add_filter( 'cmb2_override_' . self::MIGRATE_FAILURES . '_meta_save', function(): bool {
+			Storage::in()->migrate();
+			return true;
+		} );
 		add_filter( 'cmb2_override_' . self::LOGGED_FAILURES . '_meta_value', fn() => Storage::in()->get_rows() );
 		add_filter( 'cmb2_override_' . self::LOGGED_FAILURES . '_meta_save', function( $override, array $args ): bool {
 			Storage::in()->save_rows( \is_array( $args['value'] ) ? $args['value'] : [] );
@@ -64,8 +74,6 @@ final class Settings implements \ArrayAccess {
 			Storage::in()->save( [] );
 			return true;
 		} );
-
-		Api::init_once();
 	}
 
 
@@ -117,6 +125,13 @@ final class Settings implements \ArrayAccess {
 		      ->text_datetime_timestamp();
 		$group->field( Attempt::KEY, 'Unlock Key' )
 		      ->hidden();
+
+		// Registered after the group, so the migration merges on top of any rows just saved.
+		if ( Storage::in()->has_legacy() ) {
+			$box->field( self::MIGRATE_FAILURES, 'Legacy Logged Failures' )
+			    ->checkbox()
+			    ->description( 'Check and save to move failures logged by a previous version into their own option. Until then, they neither block nor appear above.' );
+		}
 
 		if ( $this->get_option( self::CLEAR, false ) ) {
 			$box->field( self::CLEAR, 'Legacy Data' )

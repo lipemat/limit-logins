@@ -5,7 +5,7 @@ namespace Lipe\Limit_Logins\Attempts;
 
 use Lipe\Limit_Logins\Attempts;
 use Lipe\Limit_Logins\Settings;
-use Lipe\Limit_Logins\Traits\Singleton;
+use function Lipe\Limit_Logins\container;
 
 /**
  * Logged failures, kept in their own option which is not autoloaded.
@@ -18,19 +18,12 @@ use Lipe\Limit_Logins\Traits\Singleton;
  * @phpstan-import-type DATA from Attempt
  */
 final class Storage {
-	use Singleton;
-
 	public const string OPTION = 'lipe/limit-logins/attempts/storage/logged-failures';
 
 	/**
 	 * Most rows kept, so a distributed attack cannot grow the option without bound.
 	 */
 	public const int MAX_ROWS = 200;
-
-
-	private function hook(): void {
-		$this->migrate();
-	}
 
 
 	/**
@@ -42,9 +35,9 @@ final class Storage {
 	 * @return list<Attempt>
 	 */
 	public function get(): array {
-		$rows = get_option( self::OPTION, false );
+		$rows = get_option( self::OPTION, [] );
 
-		return $this->to_attempts( \is_array( $rows ) ? $rows : $this->migrate() );
+		return $this->to_attempts( \is_array( $rows ) ? $rows : [] );
 	}
 
 
@@ -80,28 +73,36 @@ final class Storage {
 
 
 	/**
+	 * Are failures still stored within the autoloaded settings option?
+	 *
+	 * Drives the settings field which runs the migration.
+	 */
+	public function has_legacy(): bool {
+		$settings = get_option( Settings::NAME, [] );
+
+		return \is_array( $settings ) && \array_key_exists( Settings::LOGGED_FAILURES, $settings );
+	}
+
+
+	/**
 	 * Move failures logged by versions which stored them within the
 	 * autoloaded settings option.
 	 *
 	 * Rows already in the new option are kept.
 	 *
-	 * @return array<mixed> - The rows now stored.
+	 * The legacy key leaves through CMB2's option object so its in-memory copy
+	 * drops it as well. A plain `update_option` is written back over when the
+	 * settings page finishes saving its fields.
 	 */
-	public function migrate(): array {
+	public function migrate(): void {
 		$settings = get_option( Settings::NAME, [] );
 		if ( \is_array( $settings ) && \array_key_exists( Settings::LOGGED_FAILURES, $settings ) ) {
 			$current = get_option( self::OPTION, [] );
 			$legacy = $settings[ Settings::LOGGED_FAILURES ];
 			$this->save_rows( \array_merge( \is_array( $current ) ? $current : [], \is_array( $legacy ) ? $legacy : [] ) );
 
-			unset( $settings[ Settings::LOGGED_FAILURES ] );
-			update_option( Settings::NAME, $settings );
-
-			$rows = get_option( self::OPTION, [] );
-			return \is_array( $rows ) ? $rows : [];
+			cmb2_options( Settings::NAME )->remove( Settings::LOGGED_FAILURES, true );
 		}
-
-		return [];
 	}
 
 
@@ -170,5 +171,10 @@ final class Storage {
 				Attempt::USERNAME => $row[ Attempt::USERNAME ],
 			] );
 		}, $rows ) );
+	}
+
+
+	public static function in(): self {
+		return container()->get( __CLASS__ );
 	}
 }

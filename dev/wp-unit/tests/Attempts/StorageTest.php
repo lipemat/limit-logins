@@ -14,7 +14,6 @@ use PHPUnit\Framework\Attributes\CoversClass;
  */
 #[CoversClass( Storage::class )]
 final class StorageTest extends \WP_UnitTestCase {
-
 	public function test_save_not_autoloaded(): void {
 		global $wpdb;
 
@@ -38,19 +37,6 @@ final class StorageTest extends \WP_UnitTestCase {
 
 		$this->assertSame( 0, $updated, 'Recording a failure must not rewrite the autoloaded settings.' );
 		$this->assertSame( [ 'some-user' ], self::usernames( Storage::in()->get() ), 'The failure should be stored.' );
-	}
-
-
-	public function test_init_without_legacy_skips_read(): void {
-		$reads = 0;
-		add_filter( 'pre_option_' . Storage::OPTION, function( $value ) use ( &$reads ) {
-			++ $reads;
-			return $value;
-		} );
-
-		Storage::init();
-
-		$this->assertSame( 0, $reads );
 	}
 
 
@@ -193,7 +179,7 @@ final class StorageTest extends \WP_UnitTestCase {
 			Settings::LOGGED_FAILURES => [ $legacy->jsonSerialize() ],
 		] );
 
-		Storage::init();
+		Storage::in()->migrate();
 
 		$this->assertSame( [ Settings::CONTACT => 'https://example.test/contact' ], get_option( Settings::NAME ), 'Only the failures should leave the settings.' );
 		$this->assertSame( [ $legacy->jsonSerialize() ], Storage::in()->get_rows(), 'The block should survive the move.' );
@@ -201,17 +187,15 @@ final class StorageTest extends \WP_UnitTestCase {
 	}
 
 
-	public function test_get_migrates_legacy(): void {
-		$legacy = self::attempt( '10.0.0.1', Attempts::ALLOWED_ATTEMPTS, HOUR_IN_SECONDS );
+	public function test_get_leaves_legacy_rows(): void {
 		update_option( Settings::NAME, [
-			Settings::LOGGED_FAILURES => [ $legacy->jsonSerialize() ],
+			Settings::LOGGED_FAILURES => [ self::attempt( '10.0.0.1', Attempts::ALLOWED_ATTEMPTS, HOUR_IN_SECONDS )->jsonSerialize() ],
 		] );
-		delete_option( Storage::OPTION );
 
-		$ips = self::ips( Storage::in()->get() );
+		$attempts = Storage::in()->get();
 
-		$this->assertSame( [ '10.0.0.1' ], $ips, 'Early drop reads before the hook and must see legacy blocks.' );
-		$this->assertArrayNotHasKey( Settings::LOGGED_FAILURES, get_option( Settings::NAME ), 'The legacy rows should be removed.' );
+		$this->assertSame( [], $attempts, 'Reading must never migrate on the fly.' );
+		$this->assertTrue( Storage::in()->has_legacy(), 'The legacy rows should wait for an admin.' );
 	}
 
 
@@ -231,9 +215,8 @@ final class StorageTest extends \WP_UnitTestCase {
 		Storage::in()->save( [ self::attempt( '10.0.0.1', 1, HOUR_IN_SECONDS ) ] );
 		update_option( Settings::NAME, [ Settings::CONTACT => 'https://example.test/contact' ] );
 
-		$rows = Storage::in()->migrate();
+		Storage::in()->migrate();
 
-		$this->assertSame( [], $rows, 'Nothing should be migrated.' );
 		$this->assertSame( [ '10.0.0.1' ], self::ips( Storage::in()->get() ), 'Stored rows should be untouched.' );
 		$this->assertSame( [ Settings::CONTACT => 'https://example.test/contact' ], get_option( Settings::NAME ), 'The settings should be untouched.' );
 	}
@@ -246,6 +229,48 @@ final class StorageTest extends \WP_UnitTestCase {
 
 		$this->assertSame( [], Storage::in()->get(), 'Nothing should be stored.' );
 		$this->assertSame( [], get_option( Settings::NAME ), 'The empty legacy key should be removed.' );
+	}
+
+
+	public function test_has_legacy_with_rows(): void {
+		update_option( Settings::NAME, [
+			Settings::LOGGED_FAILURES => [ self::attempt( '10.0.0.1', 1, HOUR_IN_SECONDS )->jsonSerialize() ],
+		] );
+
+		$this->assertTrue( Storage::in()->has_legacy() );
+	}
+
+
+	public function test_has_legacy_empty_rows(): void {
+		update_option( Settings::NAME, [ Settings::LOGGED_FAILURES => [] ] );
+
+		$this->assertTrue( Storage::in()->has_legacy(), 'An empty legacy key still belongs out of the autoloaded option.' );
+	}
+
+
+	public function test_has_legacy_missing_settings(): void {
+		$this->assertFalse( get_option( Settings::NAME ), 'Nothing should be stored yet.' );
+
+		$this->assertFalse( Storage::in()->has_legacy() );
+	}
+
+
+	public function test_has_legacy_other_settings(): void {
+		Settings::in()->update_option( Settings::CONTACT, 'https://example.test/contact' );
+
+		$this->assertFalse( Storage::in()->has_legacy() );
+	}
+
+
+	public function test_has_legacy_after_migrate(): void {
+		update_option( Settings::NAME, [
+			Settings::LOGGED_FAILURES => [ self::attempt( '10.0.0.1', 1, HOUR_IN_SECONDS )->jsonSerialize() ],
+		] );
+		$this->assertTrue( Storage::in()->has_legacy(), 'The legacy key should exist before the migration runs.' );
+
+		Storage::in()->migrate();
+
+		$this->assertFalse( Storage::in()->has_legacy() );
 	}
 
 

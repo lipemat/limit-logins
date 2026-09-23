@@ -16,7 +16,6 @@ use Lipe\WP_Unit\Utils\PrivateAccess;
  *
  */
 class SettingsTest extends \WP_UnitTestCase {
-
 	public function test_clear_limit_login_attempts(): void {
 		global $wpdb;
 		foreach ( $this->limitLoginAttemptsOptions() as $option ) {
@@ -85,7 +84,7 @@ class SettingsTest extends \WP_UnitTestCase {
 		$attempt = self::attempt( 'saved-user' );
 		Settings::in()->update_option( Settings::CONTACT, 'https://example.test/contact' );
 
-		self::logged_failures_box()->save_fields( Settings::NAME, 'options-page', [
+		self::settings_box()->save_fields( Settings::NAME, 'options-page', [
 			Settings::CONTACT         => 'https://example.test/contact',
 			Settings::LOGGED_FAILURES => [ $attempt->jsonSerialize() ],
 		] );
@@ -101,7 +100,7 @@ class SettingsTest extends \WP_UnitTestCase {
 		Storage::in()->save( [ self::attempt( 'removed-user' ) ] );
 		$this->assertCount( 1, Storage::in()->get(), 'The row should exist before it is cleared.' );
 
-		self::logged_failures_box()->save_fields( Settings::NAME, 'options-page', [
+		self::settings_box()->save_fields( Settings::NAME, 'options-page', [
 			Settings::LOGGED_FAILURES => [],
 		] );
 
@@ -119,7 +118,62 @@ class SettingsTest extends \WP_UnitTestCase {
 	}
 
 
-	private static function logged_failures_box(): \CMB2 {
+	public function test_migrate_failures_field_hidden_without_legacy(): void {
+		$this->assertFalse( Storage::in()->has_legacy(), 'Nothing should be stored yet.' );
+
+		$field = self::settings_box()->get_field( Settings::MIGRATE_FAILURES );
+
+		$this->assertFalse( $field, 'The migration should stay off the page while there is nothing to migrate.' );
+	}
+
+
+	public function test_migrate_failures_field_shown_with_legacy(): void {
+		self::seed_legacy();
+
+		$field = self::settings_box()->get_field( Settings::MIGRATE_FAILURES );
+
+		$this->assertInstanceOf( \CMB2_Field::class, $field, 'Legacy rows should offer the migration.' );
+	}
+
+
+	public function test_migrate_failures_field_moves_legacy_rows(): void {
+		self::seed_legacy();
+
+		self::settings_box()->save_fields( Settings::NAME, 'options-page', [
+			Settings::MIGRATE_FAILURES => 'on',
+		] );
+
+		$this->assertSame( [ 'legacy-user' ], \array_column( Storage::in()->get_rows(), Attempt::USERNAME ), 'The legacy row should move into its own option.' );
+		$this->assertSame( [], get_option( Settings::NAME ), 'Neither the legacy rows nor the checkbox should remain.' );
+	}
+
+
+	public function test_migrate_failures_field_keeps_rows_saved_with_it(): void {
+		self::seed_legacy();
+
+		self::settings_box()->save_fields( Settings::NAME, 'options-page', [
+			Settings::LOGGED_FAILURES  => [ self::attempt( 'submitted-user' )->jsonSerialize() ],
+			Settings::MIGRATE_FAILURES => 'on',
+		] );
+
+		$this->assertSame( [ 'submitted-user', 'legacy-user' ], \array_column( Storage::in()->get_rows(), Attempt::USERNAME ), 'Rows submitted alongside the migration should survive it.' );
+		$this->assertArrayNotHasKey( Settings::MIGRATE_FAILURES, get_option( Settings::NAME ), 'The checkbox should never be stored.' );
+	}
+
+
+	public function test_migrate_failures_field_unchecked_keeps_legacy(): void {
+		self::seed_legacy();
+
+		self::settings_box()->save_fields( Settings::NAME, 'options-page', [
+			Settings::CONTACT => 'https://example.test/contact',
+		] );
+
+		$this->assertSame( [], Storage::in()->get(), 'Nothing should move until an admin checks the box.' );
+		$this->assertTrue( Storage::in()->has_legacy(), 'The legacy rows should stay where they are.' );
+	}
+
+
+	private static function settings_box(): \CMB2 {
 		do_action( 'cmb2_init' );
 		$box = cmb2_get_metabox( Settings::NAME, Settings::NAME, 'options-page' );
 		self::assertInstanceOf( \CMB2::class, $box );
@@ -128,10 +182,20 @@ class SettingsTest extends \WP_UnitTestCase {
 
 
 	private static function logged_failures_field(): \CMB2_Field {
-		self::logged_failures_box();
+		self::settings_box();
 		$field = cmb2_get_field( Settings::NAME, Settings::LOGGED_FAILURES, Settings::NAME, 'options-page' );
 		self::assertInstanceOf( \CMB2_Field::class, $field );
 		return $field;
+	}
+
+
+	/**
+	 * Seed the layout used by versions which stored failures in the settings.
+	 */
+	private static function seed_legacy(): void {
+		update_option( Settings::NAME, [
+			Settings::LOGGED_FAILURES => [ self::attempt( 'legacy-user' )->jsonSerialize() ],
+		] );
 	}
 
 
