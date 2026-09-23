@@ -3,10 +3,10 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins\Email;
 
+use Lipe\Lib\Util\Testing;
 use Lipe\Limit_Logins\Attempts;
 use Lipe\Limit_Logins\Attempts\Attempt;
 use Lipe\Limit_Logins\Settings;
-use Lipe\Limit_Logins\Utils;
 
 /**
  * @author Mat Lipe
@@ -89,7 +89,8 @@ class PreviewTest extends \WP_UnitTestCase {
 		ob_start();
 		try {
 			call_private_method( Preview::in(), 'render', [ $email ] );
-		} catch ( \OutOfBoundsException ) {
+		} catch ( \OutOfBoundsException $e ) {
+			$this->assertSame( Testing::CODE_EXIT, $e->getCode(), 'Only an exit should end the request.' );
 		} finally {
 			$this->assertTrue( Preview::in()->is_preview() );
 		}
@@ -115,7 +116,7 @@ class PreviewTest extends \WP_UnitTestCase {
 
 	public static function tearDownAfterClass(): void {
 		self::assertFalse( Preview::in()->is_preview() );
-		self::assertFalse( Utils::in()->did_exit );
+		self::assertFalse( Testing::in()->did_exit );
 		parent::tearDownAfterClass();
 	}
 
@@ -126,9 +127,9 @@ class PreviewTest extends \WP_UnitTestCase {
 			call_private_method( Preview::in(), 'preview' );
 		} catch ( \OutOfBoundsException $e ) {
 			$caught = true;
-			$this->assertSame( 'Exit called in test context.', $e->getMessage() );
+			$this->assertSame( Testing::CODE_EXIT, $e->getCode(), 'Only an exit should end the request.' );
 		} finally {
-			$this->assertTrue( Utils::in()->did_exit );
+			$this->assertTrue( Testing::in()->did_exit );
 			$this->assertTrue( isset( $caught ) && $caught );
 		}
 		return ob_get_clean();

@@ -3,6 +3,8 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins;
 
+use Lipe\Lib\Util\Testing;
+
 /**
  * @author Mat Lipe
  * @since  September 2026
@@ -102,7 +104,7 @@ class AuthenticateTest extends \WP_UnitTestCase {
 			'user_login'    => $fixture->user->user_login,
 			'user_password' => $fixture->password,
 		] );
-		$this->assertFalse( Utils::in()->did_exit );
+		$this->assertFalse( Testing::in()->did_exit );
 	}
 
 

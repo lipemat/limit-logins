@@ -3,6 +3,7 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins;
 
+use Lipe\Lib\Util\Testing;
 use Lipe\Limit_Logins\Attempts\Gateway;
 use Lipe\Limit_Logins\Authenticate\Rest;
 use Lipe\Limit_Logins\Traits\Singleton;
@@ -333,7 +334,7 @@ final class Early_Drop {
 		echo wp_kses_post( Authenticate::in()->get_blocked_message() );
 		echo '</p><p><a href="' . esc_url( wp_lostpassword_url() ) . '">Lost your password?</a></p></body></html>';
 
-		Utils::in()->exit();
+		Testing::in()->exit();
 	}
 
 
@@ -353,7 +354,7 @@ final class Early_Drop {
 		echo '<member><name>faultString</name><value><string>' . esc_html( Authenticate::MESSAGE_BLOCKED ) . '</string></value></member>';
 		echo '</struct></value></fault></methodResponse>';
 
-		Utils::in()->exit();
+		Testing::in()->exit();
 	}
 
 
@@ -372,7 +373,7 @@ final class Early_Drop {
 			'data'    => $error->get_error_data(),
 		] );
 
-		Utils::in()->exit();
+		Testing::in()->exit();
 	}
 
 
