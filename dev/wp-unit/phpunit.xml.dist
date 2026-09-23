@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Version 3.1.0 -->
+<!-- Version 3.2.0 -->
 <phpunit
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.5/phpunit.xsd"
@@ -8,6 +8,7 @@
 	cacheDirectory=".phpunit.cache"
 	colors="true"
 	displayDetailsOnAllIssues="true"
+	executionOrder="random"
 	failOnDeprecation="true"
 	failOnEmptyTestSuite="true"
 	failOnNotice="true"
