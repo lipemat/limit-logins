@@ -5,6 +5,7 @@ namespace Lipe\Limit_Logins;
 
 use Lipe\Lib\CMB2\Field\Type;
 use Lipe\Lib\Meta\Repo;
+use Lipe\WP_Unit\Utils\PrivateAccess;
 
 /**
  * @author Mat Lipe
@@ -48,6 +49,22 @@ class SettingsTest extends \WP_UnitTestCase {
 		$GLOBALS['current_screen'] = convert_to_screen( 'options-general' );
 		require dirname( __DIR__ ) . '/fixtures/blocked-user.php';
 		$this->assertMatchesRegularExpression( '/Email to send blocked notifications from which must be able to recieve replies\.<br \/><a href="http:\/\/limit-logins\.loc\/api\/lipe__limit_logins__email__preview\/\?_wpnonce=(\w+)" target="_blank">Preview email<\/a>/', call_private_method( Settings::in(), 'email_description' ) );
+	}
+
+
+	/**
+	 * The early drop field is a checkbox, like the other `Disable ...` fields.
+	 */
+	public function test_disable_early_drop_field(): void {
+		$this->assertSame( Type::CHECKBOX, PrivateAccess::in()->call_private_method( Repo::in(), 'get_registered', [ Settings::DISABLE_EARLY_DROP ] )->get_type() );
+	}
+
+
+	/**
+	 * The box is unchecked until an admin saves it.
+	 */
+	public function test_disable_early_drop_default(): void {
+		$this->assertFalse( Settings::in()->get_option( Settings::DISABLE_EARLY_DROP ) );
 	}
 
 

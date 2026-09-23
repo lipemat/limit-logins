@@ -23,6 +23,7 @@ use Lipe\Limit_Logins\Traits\Singleton;
  *     "lipe/limit-logins/settings/limit-logins/email": string,
  *     "lipe/limit-logins/settings/limit-logins/logged-failures": list<\Partial<DATA>>,
  *     "lipe/limit-logins/settings/limit-logins/disable-archive": bool,
+ *     "lipe/limit-logins/settings/limit-logins/disable-early-drop": bool,
  *     "lipe/limit-logins/settings/limit-logins/disable-endpoint": bool,
  *     "lipe/limit-logins/settings/limit-logins/disable-oembed": bool,
  * }
@@ -40,6 +41,7 @@ final class Settings implements \ArrayAccess {
 
 	public const string CLEAR                = 'lipe/limit-logins/settings/limit-logins/clear';
 	public const string CONTACT              = 'lipe/limit-logins/settings/limit-logins/contact';
+	public const string DISABLE_EARLY_DROP   = 'lipe/limit-logins/settings/limit-logins/disable-early-drop';
 	public const string DISABLE_OEMBED       = 'lipe/limit-logins/settings/limit-logins/disable-oembed';
 	public const string DISABLE_USER_ARCHIVE = 'lipe/limit-logins/settings/limit-logins/disable-archive';
 	public const string DISABLE_USER_REST    = 'lipe/limit-logins/settings/limit-logins/disable-endpoint';
@@ -74,6 +76,9 @@ final class Settings implements \ArrayAccess {
 		$box->field( self::DISABLE_OEMBED, 'Disable oEmbed' )
 		    ->true_false()
 		    ->description( 'Prevent oEmbed from being accessed and exposing usernames.' );
+		$box->field( self::DISABLE_EARLY_DROP, 'Disable Early Drop' )
+		    ->true_false()
+		    ->description( 'Let blocked login attempts run the full WordPress bootstrap instead of exiting during plugin load. They are still rejected, at the cost of the server load the early exit saves.' );
 
 		$group = $box->group( self::LOGGED_FAILURES, 'Logged Failures' );
 		// Hide the up and down buttons to keep rows short.
@@ -175,6 +180,7 @@ final class Settings implements \ArrayAccess {
 			if ( null === $default_value ) {
 				$default_value = match ( $key ) {
 					self::CLEAR,
+					self::DISABLE_EARLY_DROP,
 					self::DISABLE_OEMBED,
 					self::DISABLE_USER_REST,
 					self::DISABLE_USER_ARCHIVE => false,

@@ -554,6 +554,87 @@ final class Early_DropTest extends \WP_UnitTestCase {
 	}
 
 
+	public function test_disabled_setting_on_the_login_form(): void {
+		$this->block();
+		Settings::in()->update_option( Settings::DISABLE_EARLY_DROP, true );
+		$GLOBALS['pagenow'] = 'wp-login.php';
+		$_POST['log'] = self::BLOCKED_USER;
+		$_POST['pwd'] = 'password';
+
+		$this->assertNotDropped( 'The disabled setting should leave the login form alone.' );
+	}
+
+
+	public function test_disabled_setting_on_a_woo_login(): void {
+		$this->block();
+		Settings::in()->update_option( Settings::DISABLE_EARLY_DROP, true );
+		$_POST[ Gateway::WOO_NONCE_FIELD ] = 'nonce';
+		$_POST['username'] = self::BLOCKED_USER;
+
+		$this->assertNotDropped( 'The disabled setting should leave the WooCommerce login alone.' );
+	}
+
+
+	public function test_disabled_setting_on_xmlrpc(): void {
+		$this->block();
+		Settings::in()->update_option( Settings::DISABLE_EARLY_DROP, true );
+		$this->xmlrpc( 'wp.getUsersBlogs' );
+
+		$this->assertNotDropped( 'The disabled setting should leave the XML-RPC call alone.' );
+	}
+
+
+	public function test_disabled_setting_on_rest(): void {
+		$this->block();
+		Settings::in()->update_option( Settings::DISABLE_EARLY_DROP, true );
+		$this->rest( self::REST_PATH, self::BLOCKED_USER );
+
+		$this->assertNotDropped( 'The disabled setting should leave the REST request alone.' );
+	}
+
+
+	/**
+	 * Only the checked value disables the drop, whatever else is stored.
+	 */
+	public function test_unchecked_setting(): void {
+		$this->block();
+		Settings::in()->update_option( Settings::DISABLE_EARLY_DROP, false );
+		$GLOBALS['pagenow'] = 'wp-login.php';
+		$_POST['log'] = self::BLOCKED_USER;
+
+		$this->assertFormDropped();
+	}
+
+
+	public function test_setting_defaults_to_enabled(): void {
+		$this->block();
+		$this->assertArrayNotHasKey( Settings::DISABLE_EARLY_DROP, get_option( Settings::NAME ), 'The setting should be unset.' );
+		$GLOBALS['pagenow'] = 'wp-login.php';
+		$_POST['log'] = self::BLOCKED_USER;
+
+		$this->assertFormDropped();
+	}
+
+
+	/**
+	 * The submission the drop let through is still rejected by `authenticate`.
+	 */
+	public function test_disabled_setting_still_rejects(): void {
+		$fixture = require \dirname( __DIR__ ) . '/fixtures/blocked-user.php';
+		Settings::in()->update_option( Settings::DISABLE_EARLY_DROP, true );
+		$GLOBALS['pagenow'] = 'wp-login.php';
+		$_POST['log'] = $fixture->user->user_login;
+		$_POST['pwd'] = $fixture->password;
+		$this->assertNotDropped();
+
+		$result = wp_signon();
+
+		$this->assertInstanceOf( \WP_Error::class, $result );
+		$this->assertSame( Authenticate::CODE_BLOCKED, $result->get_error_code() );
+		$this->assertSame( Authenticate::in()->get_blocked_message(), $result->get_error_message() );
+	}
+
+
 	/**
 	 * Assert the request exited with a `403` and no database writes.
 	 *

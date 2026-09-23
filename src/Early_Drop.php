@@ -93,6 +93,11 @@ final class Early_Drop {
 			return;
 		}
 
+		// Ahead of gateway detection, so the setting covers every gateway.
+		if ( true === Settings::in()->get_option( Settings::DISABLE_EARLY_DROP, false ) ) {
+			return;
+		}
+
 		if ( Utils::in()->is_xmlrpc_request() ) {
 			$this->maybe_drop_xmlrpc();
 		} elseif ( $this->is_rest_with_credentials() ) {
