@@ -3,9 +3,9 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins\Authenticate;
 
+use Lipe\Lib\Container\Instance;
 use Lipe\Limit_Logins\Attempts;
 use Lipe\Limit_Logins\Authenticate;
-use Lipe\Limit_Logins\Traits\Singleton;
 use Lipe\Limit_Logins\Utils;
 
 /**
@@ -16,13 +16,7 @@ use Lipe\Limit_Logins\Utils;
  *
  */
 final class Rest {
-	use Singleton;
-
-	private function hook(): void {
-		add_action( 'wp_authenticate_application_password_errors', $this->rest_authenticate( ... ), 9, 2 );
-		add_action( 'application_password_failed_authentication', $this->rest_authenticate( ... ), 9 );
-	}
-
+	use Instance;
 
 	/**
 	 * `wp_authenticate` is not called during REST requests.

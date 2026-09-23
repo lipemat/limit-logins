@@ -3,10 +3,10 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins;
 
+use Lipe\Lib\Container\Instance;
 use Lipe\Lib\Util\Testing;
 use Lipe\Limit_Logins\Attempts\Gateway;
 use Lipe\Limit_Logins\Authenticate\Rest;
-use Lipe\Limit_Logins\Traits\Singleton;
 
 /**
  * Drop blocked login submissions when `limit-logins.php` is included.
@@ -22,7 +22,7 @@ use Lipe\Limit_Logins\Traits\Singleton;
  *
  */
 final class Early_Drop {
-	use Singleton;
+	use Instance;
 
 	private const string LOGIN_SCRIPT = 'wp-login.php';
 
@@ -73,18 +73,13 @@ final class Early_Drop {
 	];
 
 
-	private function hook(): void {
-		$this->maybe_drop();
-	}
-
-
 	/**
 	 * Exit with a `403` when a detectable login submission is already blocked.
 	 *
 	 * Everything else, including the GET login form, lost password, reset
 	 * password and the unlock link, returns without touching the database.
 	 */
-	private function maybe_drop(): void {
+	public function maybe_drop(): void {
 		if ( ! $this->is_database_ready() ) {
 			// Included before the database exists, retry at the first hook where it does.
 			if ( 0 === did_action( 'muplugins_loaded' ) ) {

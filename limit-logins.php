@@ -17,32 +17,24 @@ namespace Lipe\Limit_Logins;
  * Update URI: false
  */
 
-use Lipe\Limit_Logins\Authenticate\Reset_Password;
-use Lipe\Limit_Logins\Authenticate\Rest;
-use Lipe\Limit_Logins\Authenticate\Xmlrpc;
 use Lipe\Limit_Logins\Service_Providers\Attempts_Provider;
 use Lipe\Limit_Logins\Service_Providers\Authenticate_Provider;
 use Lipe\Limit_Logins\Service_Providers\Email_Provider;
 use Lipe\Limit_Logins\Service_Providers\Security_Provider;
+use Lipe\Limit_Logins\Service_Providers\Settings_Provider;
 use Lipe\Limit_Logins\WP_Cli\Commands;
 
 const LIMIT_LOGINS_PATH = __DIR__;
 
-// Blocked login submissions exit here, before the rest of WordPress loads.
-Early_Drop::init();
+// Blocked login submissions exit here, before the providers run at `plugins_loaded`.
+Early_Drop::in()->maybe_drop();
 
 add_action( 'plugins_loaded', function() {
 	( new Attempts_Provider() )->register();
 	( new Authenticate_Provider() )->register();
 	( new Email_Provider() )->register();
 	( new Security_Provider() )->register();
-
-	Attempts::init();
-	Authenticate::init();
-	Settings::init();
-	Reset_Password::init();
-	Rest::init();
-	Xmlrpc::init();
+	( new Settings_Provider() )->register();
 } );
 
 add_action( 'cli_init', function() {

@@ -3,9 +3,9 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins\Email;
 
+use Lipe\Lib\Container\Instance;
 use Lipe\Lib\Util\Actions;
 use Lipe\Limit_Logins\Settings;
-use Lipe\Limit_Logins\Traits\Singleton;
 use const Lipe\Limit_Logins\LIMIT_LOGINS_PATH;
 
 /**
@@ -13,12 +13,7 @@ use const Lipe\Limit_Logins\LIMIT_LOGINS_PATH;
  * @since   April 2024
  */
 final class Util {
-	use Singleton;
-
-	private function hook(): void {
-		// No-op.
-	}
-
+	use Instance;
 
 	/**
 	 * Send an email.

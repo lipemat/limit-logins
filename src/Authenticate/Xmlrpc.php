@@ -3,8 +3,8 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins\Authenticate;
 
+use Lipe\Lib\Container\Instance;
 use Lipe\Limit_Logins\Authenticate;
-use Lipe\Limit_Logins\Traits\Singleton;
 
 /**
  * @author Mat Lipe
@@ -12,12 +12,7 @@ use Lipe\Limit_Logins\Traits\Singleton;
  *
  */
 final class Xmlrpc {
-	use Singleton;
-
-	private function hook(): void {
-		add_filter( 'xmlrpc_login_error', [ $this, 'adjust_xmlrpc_error' ], 10, 2 );
-	}
-
+	use Instance;
 
 	public function adjust_xmlrpc_error( \IXR_Error $ixr, \WP_Error $error ): \IXR_Error {
 		if ( Authenticate::CODE_BLOCKED === $error->get_error_code() ) {

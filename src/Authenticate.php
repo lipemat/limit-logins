@@ -3,7 +3,7 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins;
 
-use Lipe\Limit_Logins\Traits\Singleton;
+use Lipe\Lib\Container\Instance;
 
 /**
  * Prevent blocked users or IP from authenticating.
@@ -13,7 +13,7 @@ use Lipe\Limit_Logins\Traits\Singleton;
  *
  */
 final class Authenticate {
-	use Singleton;
+	use Instance;
 
 	public const string CODE_BLOCKED = 'blocked';
 
@@ -39,19 +39,13 @@ final class Authenticate {
 	private array $callbacks_to_restore = [];
 
 
-	private function hook(): void {
-		add_filter( 'authenticate', $this->maybe_block_before_checks( ... ), 1, 3 );
-		add_filter( 'authenticate', $this->authenticate( ... ), 1_000, 2 );
-	}
-
-
 	/**
 	 * Reject a blocked attempt without a password check by removing core's
 	 * password callbacks until `self::restore_password_callbacks()` restores them.
 	 *
 	 * Removes 77% of the CPU time spent on a blocked attempt.
 	 */
-	private function maybe_block_before_checks( null|\WP_User|\WP_Error $user, string $username, string $password ): null|\WP_User|\WP_Error {
+	public function maybe_block_before_checks( null|\WP_User|\WP_Error $user, string $username, string $password ): null|\WP_User|\WP_Error {
 		if ( '' === $username || '' === $password || ! Attempts::in()->is_blocked( $username ) ) {
 			return $user;
 		}
@@ -70,7 +64,7 @@ final class Authenticate {
 	/**
 	 * Restore skipped password callbacks and reject blocked attempts with a `403`.
 	 */
-	private function authenticate( null|\WP_User|\WP_Error $user, string $username ): null|\WP_User|\WP_Error {
+	public function authenticate( null|\WP_User|\WP_Error $user, string $username ): null|\WP_User|\WP_Error {
 		$this->restore_password_callbacks();
 
 		if ( Attempts::in()->is_blocked( $username ) ) {

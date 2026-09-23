@@ -707,7 +707,7 @@ final class Early_DropTest extends \WP_UnitTestCase {
 
 		\ob_start();
 		try {
-			call_private_method( Early_Drop::in(), 'maybe_drop' );
+			Early_Drop::in()->maybe_drop();
 		} catch ( \OutOfBoundsException $e ) {
 			$this->assertSame( Testing::CODE_EXIT, $e->getCode(), 'Only an exit should end the request.' );
 		}

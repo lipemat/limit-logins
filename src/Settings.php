@@ -4,12 +4,12 @@ declare( strict_types=1 );
 namespace Lipe\Limit_Logins;
 
 use Lipe\Lib\CMB2\Options_Page;
+use Lipe\Lib\Container\Instance;
 use Lipe\Lib\Settings\Settings_Trait;
 use Lipe\Limit_Logins\Attempts\Attempt;
 use Lipe\Limit_Logins\Attempts\Gateway;
 use Lipe\Limit_Logins\Attempts\Storage;
 use Lipe\Limit_Logins\Email\Preview;
-use Lipe\Limit_Logins\Traits\Singleton;
 
 /**
  * @author Mat Lipe
@@ -32,7 +32,7 @@ final class Settings implements \ArrayAccess {
 	 * @use Settings_Trait<KEYS>
 	 */
 	use Settings_Trait;
-	use Singleton;
+	use Instance;
 
 	public const string NAME = 'lipe/limit-logins/settings/limit-logins';
 
@@ -59,25 +59,7 @@ final class Settings implements \ArrayAccess {
 	public const string MIGRATE_FAILURES = 'lipe/limit-logins/settings/limit-logins/migrate-failures';
 
 
-	private function hook(): void {
-		add_action( 'cmb2_init', $this->register( ... ) );
-		add_filter( 'cmb2_override_' . self::MIGRATE_FAILURES . '_meta_save', function(): bool {
-			Storage::in()->migrate();
-			return true;
-		} );
-		add_filter( 'cmb2_override_' . self::LOGGED_FAILURES . '_meta_value', fn() => Storage::in()->get_rows() );
-		add_filter( 'cmb2_override_' . self::LOGGED_FAILURES . '_meta_save', function( $override, array $args ): bool {
-			Storage::in()->save_rows( \is_array( $args['value'] ) ? $args['value'] : [] );
-			return true;
-		}, 10, 2 );
-		add_filter( 'cmb2_override_' . self::LOGGED_FAILURES . '_meta_remove', function(): bool {
-			Storage::in()->save( [] );
-			return true;
-		} );
-	}
-
-
-	private function register(): void {
+	public function register(): void {
 		$box = new Options_Page( self::NAME, 'Limit Logins' );
 		$box->parent_slug( 'tools.php' );
 

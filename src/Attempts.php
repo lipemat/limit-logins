@@ -3,10 +3,10 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins;
 
+use Lipe\Lib\Container\Instance;
 use Lipe\Limit_Logins\Attempts\Attempt;
 use Lipe\Limit_Logins\Attempts\Storage;
 use Lipe\Limit_Logins\Authenticate\Unlock_Link;
-use Lipe\Limit_Logins\Traits\Singleton;
 
 /**
  * @author Mat Lipe
@@ -14,16 +14,10 @@ use Lipe\Limit_Logins\Traits\Singleton;
  *
  */
 final class Attempts {
-	use Singleton;
+	use Instance;
 
 	public const int ALLOWED_ATTEMPTS = 5;
 	public const int DURATION         = HOUR_IN_SECONDS * 12;
-
-
-	private function hook(): void {
-		add_action( 'wp_login_failed', [ $this, 'log_failure' ] );
-		add_action( 'application_password_failed_authentication', [ $this, 'maybe_log_application_password_failure' ] );
-	}
 
 
 	/**
