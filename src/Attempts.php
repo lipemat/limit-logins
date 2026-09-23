@@ -4,7 +4,7 @@ declare( strict_types=1 );
 namespace Lipe\Limit_Logins;
 
 use Lipe\Limit_Logins\Attempts\Attempt;
-use Lipe\Limit_Logins\Attempts\Gateway;
+use Lipe\Limit_Logins\Attempts\Storage;
 use Lipe\Limit_Logins\Authenticate\Unlock_Link;
 use Lipe\Limit_Logins\Traits\Singleton;
 
@@ -47,18 +47,20 @@ final class Attempts {
 		$attempts = $this->clear_expired( $this->get_all() );
 		$existing = $this->get_existing_index( $attempts, $username );
 		if ( null !== $existing ) {
-			if ( $attempts[ $existing ]->get_count() >= self::ALLOWED_ATTEMPTS ) {
+			$current = $attempts[ $existing ];
+			if ( $current->get_count() >= self::ALLOWED_ATTEMPTS ) {
 				return;
 			}
-			$attempts[ $existing ]->add_failure();
-			if ( $attempts[ $existing ]->is_blocked() ) {
-				Unlock_Link::in()->send_blocked_email( $attempts[ $existing ] );
+			$current->add_failure();
+			if ( $current->is_blocked() ) {
+				Unlock_Link::in()->send_blocked_email( $current );
 			}
 		} else {
-			$attempts[] = Attempt::new_attempt( $username );
+			$current = Attempt::new_attempt( $username );
+			$attempts[] = $current;
 		}
 
-		Settings::in()->update_option( Settings::LOGGED_FAILURES, \array_map( fn( $attempt ) => $attempt->jsonSerialize(), $attempts ) );
+		Storage::in()->save( $attempts, $current );
 	}
 
 
@@ -111,40 +113,17 @@ final class Attempts {
 			return $username === $attempt->username;
 		} );
 
-		$remaining_blocks = \array_diff_key( $attempts, $found );
-		Settings::in()->update_option( Settings::LOGGED_FAILURES, \array_map( function( Attempt $attempt ): array {
-			return $attempt->jsonSerialize();
-		}, \array_values( $remaining_blocks ) ) );
+		Storage::in()->save( \array_values( \array_diff_key( $attempts, $found ) ) );
 	}
 
 
 	/**
-	 * Get all attempts from options translated into Attempt objects.
-	 *
-	 * Incomplete rows are dropped or defaulted, so hand edited settings
-	 * never turn into warnings.
+	 * Get all stored attempts.
 	 *
 	 * @return list<Attempt>
 	 */
 	public function get_all(): array {
-		$attempts = Settings::in()->get_option( Settings::LOGGED_FAILURES, [] );
-		$attempts = \array_filter( $attempts, function( $attempt ) {
-			if ( ! isset( $attempt[ Attempt::USERNAME ], $attempt[ Attempt::IP ] ) ) {
-				return false;
-			}
-			return ! ( '' === $attempt[ Attempt::USERNAME ] && '' === $attempt[ Attempt::IP ] );
-		} );
-
-		return \array_values( \array_map( function( array $attempt ): Attempt {
-			return Attempt::factory( [
-				Attempt::COUNT    => $attempt[ Attempt::COUNT ] ?? 1,
-				Attempt::EXPIRES  => $attempt[ Attempt::EXPIRES ] ?? (int) gmdate( 'U' ) + Attempts::DURATION,
-				Attempt::GATEWAY  => $attempt[ Attempt::GATEWAY ] ?? Gateway::WP_LOGIN->value,
-				Attempt::IP       => $attempt[ Attempt::IP ] ?? '',
-				Attempt::KEY      => $attempt[ Attempt::KEY ] ?? '',
-				Attempt::USERNAME => $attempt[ Attempt::USERNAME ] ?? '',
-			] );
-		}, $attempts ) );
+		return Storage::in()->get();
 	}
 
 

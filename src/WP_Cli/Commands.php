@@ -3,7 +3,7 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins\WP_Cli;
 
-use Lipe\Limit_Logins\Settings;
+use Lipe\Limit_Logins\Attempts\Storage;
 
 /**
  * Mange the limit-logins plugin.
@@ -23,8 +23,8 @@ final class Commands {
 	 * @subcommand clear-blocks
 	 */
 	public function clear_blocks(): void {
-		$count = \count( Settings::in()->get_option( Settings::LOGGED_FAILURES, [] ) );
-		unset( Settings::in()[ Settings::LOGGED_FAILURES ] );
+		$count = \count( Storage::in()->get() );
+		Storage::in()->save( [] );
 
 		\WP_CLI::success( "Cleared {$count} blocks." );
 	}

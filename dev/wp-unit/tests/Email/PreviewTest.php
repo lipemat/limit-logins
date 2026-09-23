@@ -6,7 +6,7 @@ namespace Lipe\Limit_Logins\Email;
 use Lipe\Lib\Util\Testing;
 use Lipe\Limit_Logins\Attempts;
 use Lipe\Limit_Logins\Attempts\Attempt;
-use Lipe\Limit_Logins\Settings;
+use Lipe\Limit_Logins\Attempts\Storage;
 
 /**
  * @author Mat Lipe
@@ -40,7 +40,7 @@ class PreviewTest extends \WP_UnitTestCase {
 		// Invalid username
 		$attempts = \array_map( fn( Attempt $attempt ) => $attempt->jsonSerialize(), Attempts::in()->get_all() );
 		$attempts[0]['username'] = 'invalid';
-		Settings::in()->update_option( Settings::LOGGED_FAILURES, $attempts );
+		Storage::in()->save_rows( $attempts );
 		$this->assertSame( '', Preview::in()->get_url() );
 	}
 

@@ -11,7 +11,7 @@ namespace Lipe\Limit_Logins\Bench;
 
 use Lipe\Limit_Logins\Attempts;
 use Lipe\Limit_Logins\Attempts\Attempt;
-use Lipe\Limit_Logins\Settings;
+use Lipe\Limit_Logins\Attempts\Storage;
 
 /**
  * Request header carrying the scenario name.
@@ -53,10 +53,10 @@ if ( REFERENCE === $_SERVER[ HEADER ] ) {
 		/**
 		 * Cycle the stored count back to 1 before it can reach a block, while still writing on every request.
 		 */
-		add_filter( 'pre_update_option_' . Settings::NAME, function( array $value ): array {
-			foreach ( $value[ Settings::LOGGED_FAILURES ] ?? [] as $i => $attempt ) {
+		add_filter( 'pre_update_option_' . Storage::OPTION, function( array $value ): array {
+			foreach ( $value as $i => $attempt ) {
 				if ( Attempts::ALLOWED_ATTEMPTS - 1 === (int) ( $attempt[ Attempt::COUNT ] ?? 0 ) ) {
-					$value[ Settings::LOGGED_FAILURES ][ $i ][ Attempt::COUNT ] = 1;
+					$value[ $i ][ Attempt::COUNT ] = 1;
 				}
 			}
 			return $value;

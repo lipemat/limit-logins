@@ -17,6 +17,7 @@ namespace Lipe\Limit_Logins;
  * Update URI: false
  */
 
+use Lipe\Limit_Logins\Attempts\Storage;
 use Lipe\Limit_Logins\Authenticate\Reset_Password;
 use Lipe\Limit_Logins\Authenticate\Rest;
 use Lipe\Limit_Logins\Authenticate\Unlock_Link;
@@ -30,6 +31,7 @@ const LIMIT_LOGINS_PATH = __DIR__;
 Early_Drop::init();
 
 add_action( 'plugins_loaded', function() {
+	Storage::init();
 	Attempts::init();
 	Authenticate::init();
 	Preview::init();

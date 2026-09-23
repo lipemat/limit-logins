@@ -6,6 +6,7 @@ namespace Lipe\Limit_Logins;
 use Lipe\Lib\Util\Testing;
 use Lipe\Limit_Logins\Attempts\Attempt;
 use Lipe\Limit_Logins\Attempts\Gateway;
+use Lipe\Limit_Logins\Attempts\Storage;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 
@@ -288,12 +289,10 @@ final class Early_DropTest extends \WP_UnitTestCase {
 
 
 	public function test_partial_failure_record(): void {
-		update_option( Settings::NAME, [
-			Settings::LOGGED_FAILURES => [
-				[
-					Attempt::IP       => self::BLOCKED_IP,
-					Attempt::USERNAME => self::BLOCKED_USER,
-				],
+		Storage::in()->save_rows( [
+			[
+				Attempt::IP       => self::BLOCKED_IP,
+				Attempt::USERNAME => self::BLOCKED_USER,
 			],
 		] );
 		$GLOBALS['pagenow'] = 'wp-login.php';
@@ -609,7 +608,7 @@ final class Early_DropTest extends \WP_UnitTestCase {
 
 	public function test_setting_defaults_to_enabled(): void {
 		$this->block();
-		$this->assertArrayNotHasKey( Settings::DISABLE_EARLY_DROP, get_option( Settings::NAME ), 'The setting should be unset.' );
+		$this->assertArrayNotHasKey( Settings::DISABLE_EARLY_DROP, get_option( Settings::NAME, [] ), 'The setting should be unset.' );
 		$GLOBALS['pagenow'] = 'wp-login.php';
 		$_POST['log'] = self::BLOCKED_USER;
 
@@ -765,9 +764,7 @@ final class Early_DropTest extends \WP_UnitTestCase {
 			Attempt::EXPIRES  => \time() + Attempts::DURATION,
 		], $overrides ) );
 
-		update_option( Settings::NAME, [
-			Settings::LOGGED_FAILURES => [ $attempt->jsonSerialize() ],
-		] );
+		Storage::in()->save( [ $attempt ] );
 	}
 
 

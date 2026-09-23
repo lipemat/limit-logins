@@ -8,6 +8,7 @@ use Lipe\Lib\CMB2\Options_Page;
 use Lipe\Lib\Settings\Settings_Trait;
 use Lipe\Limit_Logins\Attempts\Attempt;
 use Lipe\Limit_Logins\Attempts\Gateway;
+use Lipe\Limit_Logins\Attempts\Storage;
 use Lipe\Limit_Logins\Email\Preview;
 use Lipe\Limit_Logins\Traits\Singleton;
 
@@ -15,13 +16,10 @@ use Lipe\Limit_Logins\Traits\Singleton;
  * @author Mat Lipe
  * @since  April 2024
  *
- * @phpstan-import-type DATA from Attempt
- *
  * @phpstan-type KEYS array{
  *     "lipe/limit-logins/settings/limit-logins/clear": bool,
  *     "lipe/limit-logins/settings/limit-logins/contact": string,
  *     "lipe/limit-logins/settings/limit-logins/email": string,
- *     "lipe/limit-logins/settings/limit-logins/logged-failures": list<\Partial<DATA>>,
  *     "lipe/limit-logins/settings/limit-logins/disable-archive": bool,
  *     "lipe/limit-logins/settings/limit-logins/disable-early-drop": bool,
  *     "lipe/limit-logins/settings/limit-logins/disable-endpoint": bool,
@@ -46,11 +44,26 @@ final class Settings implements \ArrayAccess {
 	public const string DISABLE_USER_ARCHIVE = 'lipe/limit-logins/settings/limit-logins/disable-archive';
 	public const string DISABLE_USER_REST    = 'lipe/limit-logins/settings/limit-logins/disable-endpoint';
 	public const string EMAIL                = 'lipe/limit-logins/settings/limit-logins/email';
-	public const string LOGGED_FAILURES      = 'lipe/limit-logins/settings/limit-logins/logged-failures';
+
+	/**
+	 * Field ID of the logged failures group, which reads and writes `Storage`.
+	 *
+	 * Also the legacy key failures were stored under within this option.
+	 */
+	public const string LOGGED_FAILURES = 'lipe/limit-logins/settings/limit-logins/logged-failures';
 
 
 	private function hook(): void {
 		add_action( 'cmb2_init', $this->register( ... ) );
+		add_filter( 'cmb2_override_' . self::LOGGED_FAILURES . '_meta_value', fn() => Storage::in()->get_rows() );
+		add_filter( 'cmb2_override_' . self::LOGGED_FAILURES . '_meta_save', function( $override, array $args ): bool {
+			Storage::in()->save_rows( \is_array( $args['value'] ) ? $args['value'] : [] );
+			return true;
+		}, 10, 2 );
+		add_filter( 'cmb2_override_' . self::LOGGED_FAILURES . '_meta_remove', function(): bool {
+			Storage::in()->save( [] );
+			return true;
+		} );
 
 		Api::init_once();
 	}
@@ -186,7 +199,6 @@ final class Settings implements \ArrayAccess {
 					self::DISABLE_USER_ARCHIVE => false,
 					self::CONTACT,
 					self::EMAIL                => '',
-					self::LOGGED_FAILURES      => []
 				};
 			}
 			return $default_value;

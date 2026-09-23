@@ -5,6 +5,9 @@ namespace Lipe\Limit_Logins;
 
 use Lipe\Lib\CMB2\Field\Type;
 use Lipe\Lib\Meta\Repo;
+use Lipe\Limit_Logins\Attempts\Attempt;
+use Lipe\Limit_Logins\Attempts\Gateway;
+use Lipe\Limit_Logins\Attempts\Storage;
 use Lipe\WP_Unit\Utils\PrivateAccess;
 
 /**
@@ -65,6 +68,81 @@ class SettingsTest extends \WP_UnitTestCase {
 	 */
 	public function test_disable_early_drop_default(): void {
 		$this->assertFalse( Settings::in()->get_option( Settings::DISABLE_EARLY_DROP ) );
+	}
+
+
+	public function test_logged_failures_field_displays_stored_rows(): void {
+		$attempt = self::attempt( 'shown-user' );
+		Storage::in()->save( [ $attempt ] );
+
+		$value = self::logged_failures_field()->value();
+
+		$this->assertSame( [ $attempt->jsonSerialize() ], $value );
+	}
+
+
+	public function test_logged_failures_field_saves_to_storage(): void {
+		$attempt = self::attempt( 'saved-user' );
+		Settings::in()->update_option( Settings::CONTACT, 'https://example.test/contact' );
+
+		self::logged_failures_box()->save_fields( Settings::NAME, 'options-page', [
+			Settings::CONTACT         => 'https://example.test/contact',
+			Settings::LOGGED_FAILURES => [ $attempt->jsonSerialize() ],
+		] );
+
+		$this->assertArrayNotHasKey( Settings::LOGGED_FAILURES, get_option( Settings::NAME ), 'The failures should stay out of the settings.' );
+		$this->assertSame( 'https://example.test/contact', Settings::in()->get_option( Settings::CONTACT ), 'Other settings should still save.' );
+		$this->assertSame( [ 'saved-user' ], \array_column( Storage::in()->get_rows(), Attempt::USERNAME ), 'The row should be stored in its own option.' );
+		$this->assertSame( Attempts::ALLOWED_ATTEMPTS, Storage::in()->get()[0]->get_count(), 'The count should survive the save.' );
+	}
+
+
+	public function test_logged_failures_field_saves_empty_group(): void {
+		Storage::in()->save( [ self::attempt( 'removed-user' ) ] );
+		$this->assertCount( 1, Storage::in()->get(), 'The row should exist before it is cleared.' );
+
+		self::logged_failures_box()->save_fields( Settings::NAME, 'options-page', [
+			Settings::LOGGED_FAILURES => [],
+		] );
+
+		$this->assertSame( [], Storage::in()->get(), 'Every row should be cleared.' );
+	}
+
+
+	public function test_logged_failures_field_removes_every_row(): void {
+		Storage::in()->save( [ self::attempt( 'removed-user' ) ] );
+		$this->assertCount( 1, Storage::in()->get(), 'The row should exist before it is cleared.' );
+
+		self::logged_failures_field()->remove_data();
+
+		$this->assertSame( [], Storage::in()->get(), 'Every row should be cleared.' );
+	}
+
+
+	private static function logged_failures_box(): \CMB2 {
+		do_action( 'cmb2_init' );
+		$box = cmb2_get_metabox( Settings::NAME, Settings::NAME, 'options-page' );
+		self::assertInstanceOf( \CMB2::class, $box );
+		return $box;
+	}
+
+
+	private static function logged_failures_field(): \CMB2_Field {
+		self::logged_failures_box();
+		$field = cmb2_get_field( Settings::NAME, Settings::LOGGED_FAILURES, Settings::NAME, 'options-page' );
+		self::assertInstanceOf( \CMB2_Field::class, $field );
+		return $field;
+	}
+
+
+	private static function attempt( string $username ): Attempt {
+		return Attempt::factory( [
+			Attempt::IP       => '10.0.0.1',
+			Attempt::USERNAME => $username,
+			Attempt::GATEWAY  => Gateway::WP_LOGIN->value,
+			Attempt::COUNT    => Attempts::ALLOWED_ATTEMPTS,
+			Attempt::EXPIRES  => (int) \gmdate( 'U' ) + HOUR_IN_SECONDS,
+		] );
 	}
 
 

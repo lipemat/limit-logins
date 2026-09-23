@@ -4,7 +4,7 @@ declare( strict_types=1 );
 namespace Lipe\Limit_Logins;
 
 use Lipe\Limit_Logins\Attempts\Attempt;
-use Lipe\Limit_Logins\Settings as Settings;
+use Lipe\Limit_Logins\Attempts\Storage;
 
 /**
  * @author Mat Lipe
@@ -18,21 +18,21 @@ class AttemptsTest extends \WP_Test_REST_TestCase {
 		$user_0 = ( require \dirname( __DIR__ ) . '/fixtures/blocked-user.php' )->user->user_login;
 		$_SERVER['REMOTE_ADDR'] = '2.2.2.2';
 		$user_1 = ( require \dirname( __DIR__ ) . '/fixtures/blocked-user.php' )->user->user_login;
-		$data = Settings::in()->get_option( Settings::LOGGED_FAILURES, [] );
+		$data = Storage::in()->get_rows();
 		$this->assertSame( $user_0, Attempts::in()->get_existing( $user_0 )->username );
 		$this->assertSame( $user_1, Attempts::in()->get_existing( $user_1 )->username );
 
 		// 1 available attempt, should receive the matching IP.
 		$data[0]['expires'] = (int) gmdate( 'U' ) - 1;
 		$data[0]['count'] = Attempts::ALLOWED_ATTEMPTS - 1;
-		Settings::in()->update_option( Settings::LOGGED_FAILURES, $data );
+		Storage::in()->save_rows( $data );
 		$this->assertSame( $user_1, Attempts::in()->get_existing( $user_0 )->username );
 		$this->assertSame( $user_1, Attempts::in()->get_existing( $user_1 )->username );
 
 		// 2 available attempts, should receive the blocked one.
 		$data[0]['expires'] = (int) gmdate( 'U' ) + 30;
 		$data[0]['ip'] = $data[1]['ip'];
-		Settings::in()->update_option( Settings::LOGGED_FAILURES, $data );
+		Storage::in()->save_rows( $data );
 		$this->assertSame( $user_1, Attempts::in()->get_existing( $user_0 )->username );
 		$this->assertSame( $user_1, Attempts::in()->get_existing( $user_1 )->username );
 	}
@@ -66,9 +66,9 @@ class AttemptsTest extends \WP_Test_REST_TestCase {
 		require \dirname( __DIR__ ) . '/fixtures/blocked-user.php';
 		$this->assertTrue( Attempts::in()->is_ip_blocked() );
 
-		$data = Settings::in()->get_option( Settings::LOGGED_FAILURES, [] );
+		$data = Storage::in()->get_rows();
 		$data[0][ Attempt::EXPIRES ] = (int) \gmdate( 'U' ) - 1;
-		Settings::in()->update_option( Settings::LOGGED_FAILURES, $data );
+		Storage::in()->save_rows( $data );
 
 		$this->assertFalse( Attempts::in()->is_ip_blocked() );
 	}
@@ -78,9 +78,9 @@ class AttemptsTest extends \WP_Test_REST_TestCase {
 		require \dirname( __DIR__ ) . '/fixtures/blocked-user.php';
 		$this->assertTrue( Attempts::in()->is_ip_blocked() );
 
-		$data = Settings::in()->get_option( Settings::LOGGED_FAILURES, [] );
+		$data = Storage::in()->get_rows();
 		$data[0][ Attempt::COUNT ] = Attempts::ALLOWED_ATTEMPTS - 1;
-		Settings::in()->update_option( Settings::LOGGED_FAILURES, $data );
+		Storage::in()->save_rows( $data );
 
 		$this->assertFalse( Attempts::in()->is_ip_blocked() );
 	}
@@ -190,14 +190,14 @@ class AttemptsTest extends \WP_Test_REST_TestCase {
 
 		// Set the expiration to 1 second from now.
 		$data['expires'] = (int) gmdate( 'U' ) + 1;
-		Settings::in()->update_option( Settings::LOGGED_FAILURES, [ $data ] );
+		Storage::in()->save_rows( [ $data ] );
 		$this->assertSame( $this->tooManyError(), wp_authenticate( $user->user_login, 'NOT VALID PASSWORD' )->get_error_message() );
 		$this->assertInstanceOf( Attempt::class, Attempts::in()->get_existing( $user->user_login ) );
 
 		// Set the expiration to 1 second ago.
 		$this->assertSame( Attempts::ALLOWED_ATTEMPTS, Attempts::in()->get_existing( $user->user_login )->get_count() );
 		$data['expires'] = (int) gmdate( 'U' ) - 1;
-		Settings::in()->update_option( Settings::LOGGED_FAILURES, [ $data ] );
+		Storage::in()->save_rows( [ $data ] );
 		$this->assertNotWPError( wp_authenticate( $user->user_login, $password ) );
 
 		// Clears out old attempts during the next failure.
@@ -228,7 +228,7 @@ class AttemptsTest extends \WP_Test_REST_TestCase {
 	 * account cannot clear the IP behind someone else's block.
 	 */
 	public function test_remove_block_preserves_current_ip(): void {
-		Settings::in()->update_option( Settings::LOGGED_FAILURES, [
+		Storage::in()->save_rows( [
 			[ Attempt::USERNAME => 'blocked-user', Attempt::IP => Utils::in()->get_current_ip() ],
 		] );
 		$this->assertSame( [ 'blocked-user' ], self::attempt_usernames() );
@@ -241,7 +241,7 @@ class AttemptsTest extends \WP_Test_REST_TestCase {
 
 	public function test_remove_block_without_match_preserves_attempts(): void {
 		$_SERVER['REMOTE_ADDR'] = '33.33.33.33';
-		Settings::in()->update_option( Settings::LOGGED_FAILURES, [
+		Storage::in()->save_rows( [
 			[ Attempt::USERNAME => 'unrelated', Attempt::IP => '192.0.2.10' ],
 		] );
 		$this->assertSame( [ 'unrelated' ], self::attempt_usernames() );

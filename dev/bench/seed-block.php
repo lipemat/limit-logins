@@ -11,7 +11,7 @@ declare( strict_types=1 );
 
 use Lipe\Limit_Logins\Attempts;
 use Lipe\Limit_Logins\Attempts\Attempt;
-use Lipe\Limit_Logins\Settings;
+use Lipe\Limit_Logins\Attempts\Storage;
 
 if ( 3 !== \count( $args ) ) {
 	\WP_CLI::error( 'Usage: wp eval-file seed-block.php <ip> <username> <gateway>' );
@@ -24,6 +24,6 @@ $lipe_limit_logins_block = Attempt::factory( [
 	Attempt::COUNT    => Attempts::ALLOWED_ATTEMPTS,
 	Attempt::EXPIRES  => \time() + Attempts::DURATION,
 ] );
-Settings::in()->update_option( Settings::LOGGED_FAILURES, [ $lipe_limit_logins_block->jsonSerialize() ] );
+Storage::in()->save( [ $lipe_limit_logins_block ] );
 
 \WP_CLI::success( "Blocked {$args[0]} / {$args[1]} on {$args[2]}." );
