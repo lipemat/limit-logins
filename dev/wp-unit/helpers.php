@@ -3,86 +3,61 @@
 declare( strict_types=1 );
 
 use Lipe\Limit_Logins\Container;
+use Lipe\WP_Unit\Exceptions\TestHelperException;
+use Lipe\WP_Unit\Utils\PrivateAccess;
 use function Lipe\Limit_Logins\container;
 
 /**
- * Version 3.1.0
+ * Version 5.0.0
+ *
+ * @requires wp-unit 4.8.0
  */
-
-/**
- * A special exception class for the test helpers.
- *
- * - Allows us to know if an exception was specific to testing internals.
- * - Ignornable exception for PHPStorm.
- *
- * @since 2.9.0
- *
- */
-class TestHelperException extends \Exception {
-}
 
 /**
  * Call a protected / private method of a class.
+ *
+ * @deprecated 4.0.0 Use `PrivateAccess::in()->call_private_method()` instead.
  *
  * @param class-string|object $object      An instantiated object or class name that we will run the method on.
  * @param string              $method_name Method name to call.
  * @param array               $parameters  Array of parameters to pass into method.
  *
+ * @throws TestHelperException
  * @return mixed Method return.
  */
 function call_private_method( string|object $object, string $method_name, array $parameters = [] ): mixed {
-	$reflection = new \ReflectionClass( \is_string( $object ) ? $object : \get_class( $object ) );
-	if ( \is_string( $object ) ) {
-		$object = $reflection->newInstanceWithoutConstructor();
-	}
-	$method = $reflection->getMethod( $method_name );
-
-	return $method->invokeArgs( $object, $parameters );
+	return PrivateAccess::in()->call_private_method( $object, $method_name, $parameters );
 }
 
 /**
  * Get the value of a private constant or property from an object.
  *
+ * @deprecated 4.0.0 Use `PrivateAccess::in()->get_private_property()` instead.
+ *
  * @param class-string|object $object   An instantiated object or class name that we will run the method on.
  * @param string              $property Property name or constant name to get.
  *
+ * @throws TestHelperException
  * @return mixed
  */
 function get_private_property( string|object $object, string $property ): mixed {
-	$reflection = new \ReflectionClass( \is_string( $object ) ? $object : \get_class( $object ) );
-	if ( $reflection->hasProperty( $property ) ) {
-		$reflection_property = $reflection->getProperty( $property );
-		if ( $reflection_property->isStatic() ) {
-			return $reflection_property->getValue();
-		}
-		if ( \is_string( $object ) ) {
-			throw new \TestHelperException( 'Getting a non-static value from a non-instantiated object is useless.', E_USER_ERROR );
-		}
-		return $reflection_property->getValue( $object );
-	}
-	return $reflection->getConstant( $property );
+	return PrivateAccess::in()->get_private_property( $object, $property );
 }
 
 /**
  * Set the value of a private property on an object.
  *
+ * @deprecated 4.0.0 Use `PrivateAccess::in()->set_private_property()` instead.
+ *
  * @param class-string|object $object   An instantiated object to set property on.
  * @param string              $property Property name to set.
  * @param mixed               $value    Value to set.
  *
+ * @throws TestHelperException
  * @return void
  */
 function set_private_property( string|object $object, string $property, mixed $value ): void {
-	$reflection = new \ReflectionClass( \is_string( $object ) ? $object : \get_class( $object ) );
-	$reflection_property = $reflection->getProperty( $property );
-	if ( $reflection_property->isStatic() ) {
-		$reflection_property->setValue( null, $value );
-	} else {
-		if ( \is_string( $object ) ) {
-			throw new \TestHelperException( 'Setting a non-static value on a non-instantiated object is useless.', E_USER_ERROR );
-		}
-		$reflection_property->setValue( $object, $value );
-	}
+	PrivateAccess::in()->set_private_property( $object, $property, $value );
 }
 
 /**
@@ -127,11 +102,6 @@ function change_container_object( string $key, object $object, bool $is_factory 
  * @see \WP_UnitTestCase_Base::tear_down
  */
 function tests_reset_container(): void {
-	set_private_property( Container::instance(), 'core_instance', null );
+	PrivateAccess::in()->set_private_property( Container::instance(), 'core_instance', null );
 	Container::instance();
 }
-
-
-/**
- * `allow_extending_final` has been moved to the wp-unit library.
- */
