@@ -99,7 +99,7 @@ final class Settings implements \ArrayAccess {
 		    ->description( 'Prevent oEmbed from being accessed and exposing usernames.' );
 		$box->field( self::DISABLE_EARLY_DROP, 'Disable Early Drop' )
 		    ->true_false()
-		    ->description( 'Let blocked login attempts run the full WordPress bootstrap instead of exiting during plugin load. They are still rejected, at the cost of the server load the early exit saves.' );
+		    ->description( 'Allow full WordPress bootstrap to load instead of dropping blocking requests early.<br />Disabling may improve UX but increases server load.' );
 
 		$group = $box->group( self::LOGGED_FAILURES, 'Logged Failures' );
 		// Hide the up and down buttons to keep rows short.
