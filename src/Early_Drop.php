@@ -379,12 +379,15 @@ final class Early_Drop {
 	/**
 	 * Send the `403` headers shared by every dropped gateway.
 	 *
-	 * Only the content type needs a guard; the others carry their own.
+	 * If headers have already been sent, skip the whole sequence to avoid
+	 * warnings and partial/invalid responses.
 	 */
 	private function send_headers( string $content_type ): void {
-		if ( ! \headers_sent() ) {
-			\header( 'Content-Type: ' . $content_type );
+		if ( \headers_sent() ) {
+			return;
 		}
+
+		\header( 'Content-Type: ' . $content_type );
 		status_header( 403 );
 		nocache_headers();
 	}
