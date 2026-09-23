@@ -18,6 +18,7 @@ final class Early_DropTest extends \WP_UnitTestCase {
 	private const string BLOCKED_IP   = '5.5.5.5';
 	private const string BLOCKED_USER = 'blocked-user';
 	private const string OTHER_IP     = '6.6.6.6';
+	private const string REST_PATH    = '/wp-json/wp/v2/users/me';
 
 	/**
 	 * Codes sent through `status_header()`.
@@ -36,7 +37,7 @@ final class Early_DropTest extends \WP_UnitTestCase {
 	/**
 	 * Request globals restored after each test.
 	 *
-	 * @var array{server: array<string, mixed>, request: array<string, mixed>, pagenow: mixed}
+	 * @var array{server: array<string, mixed>, request: array<string, mixed>, cookie: array<string, mixed>, pagenow: mixed}
 	 */
 	private array $request = [];
 
@@ -46,6 +47,7 @@ final class Early_DropTest extends \WP_UnitTestCase {
 		$this->request = [
 			'server'  => $_SERVER,
 			'request' => $_REQUEST,
+			'cookie'  => $_COOKIE,
 			'pagenow' => $GLOBALS['pagenow'] ?? null,
 		];
 		$_SERVER['REMOTE_ADDR'] = self::BLOCKED_IP;
@@ -66,8 +68,10 @@ final class Early_DropTest extends \WP_UnitTestCase {
 
 
 	protected function tearDown(): void {
+		unset( $GLOBALS['wp_xmlrpc_server'] );
 		$_SERVER = $this->request['server'];
 		$_REQUEST = $this->request['request'];
+		$_COOKIE = $this->request['cookie'];
 		$GLOBALS['pagenow'] = $this->request['pagenow'];
 		parent::tearDown();
 	}
@@ -79,7 +83,7 @@ final class Early_DropTest extends \WP_UnitTestCase {
 		$_POST['log'] = 'someone-else';
 		$_POST['pwd'] = 'password';
 
-		$this->assertDropped();
+		$this->assertFormDropped();
 	}
 
 
@@ -90,7 +94,7 @@ final class Early_DropTest extends \WP_UnitTestCase {
 		$_POST['log'] = self::BLOCKED_USER;
 		$_POST['pwd'] = 'password';
 
-		$this->assertDropped();
+		$this->assertFormDropped();
 	}
 
 
@@ -100,7 +104,7 @@ final class Early_DropTest extends \WP_UnitTestCase {
 		$_REQUEST['action'] = 'login';
 		$_POST['log'] = self::BLOCKED_USER;
 
-		$this->assertDropped();
+		$this->assertFormDropped();
 	}
 
 
@@ -113,7 +117,7 @@ final class Early_DropTest extends \WP_UnitTestCase {
 		$_REQUEST['action'] = 'not-a-real-action';
 		$_POST['log'] = self::BLOCKED_USER;
 
-		$this->assertDropped();
+		$this->assertFormDropped();
 	}
 
 
@@ -155,7 +159,7 @@ final class Early_DropTest extends \WP_UnitTestCase {
 		$_SERVER['PHP_SELF'] = '/wp-login.php';
 		$_POST['log'] = self::BLOCKED_USER;
 
-		$this->assertDropped();
+		$this->assertFormDropped();
 	}
 
 
@@ -176,7 +180,7 @@ final class Early_DropTest extends \WP_UnitTestCase {
 		$_SERVER['REQUEST_URI'] = '/wp-login.php?redirect_to=%2Fwp-admin%2F';
 		$_POST['log'] = self::BLOCKED_USER;
 
-		$this->assertDropped();
+		$this->assertFormDropped();
 	}
 
 
@@ -213,7 +217,7 @@ final class Early_DropTest extends \WP_UnitTestCase {
 		$_POST['username'] = 'someone-else';
 		$_POST['password'] = 'password';
 
-		$this->assertDropped();
+		$this->assertFormDropped();
 	}
 
 
@@ -224,7 +228,7 @@ final class Early_DropTest extends \WP_UnitTestCase {
 		$_POST['username'] = self::BLOCKED_USER;
 		$_POST['password'] = 'password';
 
-		$this->assertDropped();
+		$this->assertFormDropped();
 	}
 
 
@@ -337,17 +341,266 @@ final class Early_DropTest extends \WP_UnitTestCase {
 	}
 
 
+	public function test_xmlrpc_blocked_ip(): void {
+		$this->block();
+		$this->xmlrpc( 'wp.getUsersBlogs' );
+
+		$this->assertXmlrpcDropped();
+	}
+
+
 	/**
-	 * Assert the request exited with a `403` blocked page and no database writes.
+	 * The calls `system.multicall` wraps carry credentials of their own.
 	 */
-	private function assertDropped(): void {
+	public function test_xmlrpc_multicall(): void {
+		$this->block();
+		$this->xmlrpc( 'system.multicall' );
+
+		$this->assertXmlrpcDropped();
+	}
+
+
+	/**
+	 * The fault is built by hand because `class-IXR.php` is not loaded this early.
+	 */
+	public function test_xmlrpc_fault_matches_ixr_error(): void {
+		$this->block();
+		$this->xmlrpc( 'wp.getUsersBlogs' );
+
+		$rendered = $this->assertDropped();
+
+		$expected = new \IXR_Error( Authenticate::CODE_BLOCKED, Authenticate::MESSAGE_BLOCKED );
+		$this->assertXmlStringEqualsXmlString( $expected->getXml(), $rendered, 'The fault should match the one `IXR_Error` renders.' );
+	}
+
+
+	#[DataProvider( 'providerUnauthenticatedMethods' )]
+	public function test_xmlrpc_unauthenticated_method( string $method, string $message ): void {
+		$this->block();
+		$this->xmlrpc( $method );
+
+		$this->assertNotDropped( $message );
+	}
+
+
+	/**
+	 * The username is inside the method parameters, which the `authenticate`
+	 * fallback reads once core has parsed the request.
+	 */
+	public function test_xmlrpc_username_only_block(): void {
+		$this->block();
+		$_SERVER['REMOTE_ADDR'] = self::OTHER_IP;
+		$this->xmlrpc( 'wp.getUsersBlogs' );
+
+		$this->assertTrue( Attempts::in()->is_blocked( self::BLOCKED_USER ), 'The username should still be blocked.' );
+		$this->assertNotDropped( 'A username only block is left to the `authenticate` fallback.' );
+	}
+
+
+	public function test_xmlrpc_empty_body(): void {
+		$this->block();
+		$this->xmlrpc( 'wp.getUsersBlogs' );
+		$this->requestBody( '' );
+
+		$this->assertNotDropped();
+	}
+
+
+	public function test_xmlrpc_body_without_a_method_name(): void {
+		$this->block();
+		$this->xmlrpc( 'wp.getUsersBlogs' );
+		$this->requestBody( '<?xml version="1.0"?><methodCall><params /></methodCall>' );
+
+		$this->assertNotDropped();
+	}
+
+
+	/**
+	 * Core's parser dispatches a CDATA wrapped method name like any other.
+	 */
+	public function test_xmlrpc_cdata_method_name(): void {
+		$this->block();
+		$this->xmlrpc( 'wp.getUsersBlogs' );
+		$this->requestBody( '<?xml version="1.0"?><methodCall><methodName><![CDATA[wp.getUsersBlogs]]></methodName><params /></methodCall>' );
+
+		$this->assertXmlrpcDropped();
+	}
+
+
+	/**
+	 * A method call posted to anything but `xmlrpc.php` is just a form post.
+	 */
+	public function test_method_call_outside_an_xmlrpc_request(): void {
+		$this->block();
+		$this->requestBody( self::methodCall( 'wp.getUsersBlogs' ) );
+
+		$this->assertNotDropped();
+	}
+
+
+	public function test_rest_blocked_ip(): void {
+		$this->block();
+		$this->rest( self::REST_PATH, 'someone-else' );
+
+		$this->assertRestDropped();
+	}
+
+
+	public function test_rest_blocked_username_other_ip(): void {
+		$this->block();
+		$_SERVER['REMOTE_ADDR'] = self::OTHER_IP;
+		$this->rest( self::REST_PATH, self::BLOCKED_USER );
+
+		$this->assertRestDropped();
+	}
+
+
+	/**
+	 * Sites without pretty permalinks reach the API through `rest_route`.
+	 */
+	public function test_rest_route_query_var(): void {
+		$this->block();
+		$this->rest( '/index.php?rest_route=/wp/v2/users/me', self::BLOCKED_USER );
+		$_REQUEST['rest_route'] = '/wp/v2/users/me';
+
+		$this->assertRestDropped();
+	}
+
+
+	/**
+	 * Core ignores an empty `rest_route`, so it is not a REST request.
+	 */
+	public function test_empty_rest_route_query_var(): void {
+		$this->block();
+		$this->rest( '/index.php?rest_route=', self::BLOCKED_USER );
+		$_REQUEST['rest_route'] = '';
+
+		$this->assertNotDropped();
+	}
+
+
+	/**
+	 * An unvalidated login cookie is not proof of a login, so it never stops
+	 * the drop. Only reachable behind server Basic auth.
+	 */
+	public function test_rest_with_a_login_cookie(): void {
+		$this->block();
+		$this->rest( self::REST_PATH, self::BLOCKED_USER );
+		$_COOKIE[ LOGGED_IN_COOKIE ] = 'a-cookie';
+
+		$this->assertRestDropped();
+	}
+
+
+	/**
+	 * The API index carries no path after the prefix.
+	 */
+	public function test_rest_index(): void {
+		$this->block();
+		$this->rest( '/wp-json', self::BLOCKED_USER );
+
+		$this->assertRestDropped();
+	}
+
+
+	public function test_rest_in_a_subdirectory_install(): void {
+		$this->block();
+		$this->rest( '/blog/wp-json/wp/v2/users/me', self::BLOCKED_USER );
+
+		$this->assertRestDropped();
+	}
+
+
+	/**
+	 * Cookie authenticated REST requests send no `PHP_AUTH_USER`.
+	 */
+	public function test_rest_without_credentials(): void {
+		$this->block();
+		$this->rest( self::REST_PATH, self::BLOCKED_USER );
+		unset( $_SERVER['PHP_AUTH_USER'] );
+
+		$this->assertNotDropped( 'A REST request without credentials of its own should never be dropped.' );
+	}
+
+
+	public function test_rest_unblocked(): void {
+		$this->block();
+		$_SERVER['REMOTE_ADDR'] = self::OTHER_IP;
+		$this->rest( self::REST_PATH, 'someone-else' );
+
+		$this->assertNotDropped();
+	}
+
+
+	/**
+	 * A site behind HTTP Basic auth sends `PHP_AUTH_USER` on every request.
+	 */
+	public function test_basic_auth_outside_the_rest_api(): void {
+		$this->block();
+		$this->rest( '/wp-admin/edit.php', self::BLOCKED_USER );
+
+		$this->assertNotDropped();
+	}
+
+
+	/**
+	 * A query string may name the REST prefix on a request going somewhere else.
+	 */
+	public function test_rest_prefix_in_the_query_string(): void {
+		$this->block();
+		$this->rest( '/contact/?redirect=/wp-json/wp/v2/users/me', self::BLOCKED_USER );
+
+		$this->assertNotDropped();
+	}
+
+
+	/**
+	 * Assert the request exited with a `403` and no database writes.
+	 *
+	 * @return string The rendered response body.
+	 */
+	private function assertDropped(): string {
 		$rendered = $this->drop();
 
 		$this->assertTrue( Utils::in()->did_exit, 'The request should have exited.' );
 		$this->assertSame( [ 403 ], $this->statuses, 'The response should be a 403.' );
 		$this->assertSame( [], $this->writes, 'A blocked attempt should not write to the database.' );
-		$this->assertStringContainsString( 'Too many failed login attempts.', $rendered, 'The blocked message should be rendered.' );
-		$this->assertStringContainsString( esc_url( wp_lostpassword_url() ), $rendered, 'A lost password link should be rendered.' );
+		$this->assertStringContainsString( Authenticate::MESSAGE_BLOCKED, $rendered, 'The blocked message should be rendered.' );
+
+		return $rendered;
+	}
+
+
+	/**
+	 * Assert the login form request exited with the `403` blocked page.
+	 */
+	private function assertFormDropped(): void {
+		$rendered = $this->assertDropped();
+
+		$this->assertEqualHTML( '<!DOCTYPE html><html lang="' . esc_attr( get_bloginfo( 'language' ) ) . '"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Login Blocked</title></head><body><p>' . Authenticate::in()->get_blocked_message() . '</p></body></html>', $rendered );
+
+		$this->assertStringContainsString( '<meta charset="utf-8" />', $rendered, 'A lost password link should be rendered.' );
+	}
+
+
+	/**
+	 * Assert the XML-RPC request exited with a `403` and a blocked fault.
+	 */
+	private function assertXmlrpcDropped(): void {
+		$rendered = $this->assertDropped();
+
+		$this->assertStringContainsString( '<name>faultCode</name><value><int>' . Authenticate::CODE_BLOCKED . '</int></value>', $rendered, 'An XML-RPC fault should be rendered.' );
+	}
+
+
+	/**
+	 * Assert the REST request exited with a `403` and the blocked JSON error,
+	 * byte for byte as a client receives it.
+	 */
+	private function assertRestDropped(): void {
+		$rendered = $this->assertDropped();
+
+		$this->assertSame( '{"code":"blocked","message":"Too many failed login attempts.","data":{"status":403}}', $rendered, 'The blocked JSON error should be rendered.' );
 	}
 
 
@@ -381,6 +634,41 @@ final class Early_DropTest extends \WP_UnitTestCase {
 
 
 	/**
+	 * Make the request an XML-RPC call to `$method`.
+	 */
+	private function xmlrpc( string $method ): void {
+		$GLOBALS['wp_xmlrpc_server'] = new \wp_xmlrpc_server();
+		$this->requestBody( self::methodCall( $method ) );
+	}
+
+
+	/**
+	 * Make the request a REST request to `$path` with Basic auth for `$username`.
+	 */
+	private function rest( string $path, string $username ): void {
+		$_SERVER['REQUEST_METHOD'] = 'GET';
+		$_SERVER['REQUEST_URI'] = $path;
+		$_SERVER['PHP_AUTH_USER'] = $username;
+	}
+
+
+	/**
+	 * Serve `$body` as the raw request body, which `php://input` cannot provide here.
+	 */
+	private function requestBody( string $body ): void {
+		change_container_object( Utils::class, new class( $body ) extends Utils {
+			public function __construct( private readonly string $body ) {
+			}
+
+
+			public function get_request_body(): string {
+				return $this->body;
+			}
+		} );
+	}
+
+
+	/**
 	 * Store a single blocked failure for `self::BLOCKED_IP` and `self::BLOCKED_USER`.
 	 *
 	 * @param array<string, int|string> $overrides
@@ -397,6 +685,14 @@ final class Early_DropTest extends \WP_UnitTestCase {
 		update_option( Settings::NAME, [
 			Settings::LOGGED_FAILURES => [ $attempt->jsonSerialize() ],
 		] );
+	}
+
+
+	/**
+	 * The body of an XML-RPC call to `$method`.
+	 */
+	private static function methodCall( string $method ): string {
+		return '<?xml version="1.0"?><methodCall><methodName>' . $method . '</methodName><params><param><value><string>' . self::BLOCKED_USER . '</string></value></param></params></methodCall>';
 	}
 
 
@@ -425,6 +721,33 @@ final class Early_DropTest extends \WP_UnitTestCase {
 			$rows[ $action ] = [
 				'action'  => $action,
 				'message' => "The {$action} action is handled by core and is not a login submission.",
+			];
+		}
+
+		return $rows;
+	}
+
+
+	/**
+	 * XML-RPC methods core serves to anonymous callers.
+	 *
+	 * @return array<string, array{method: string, message: string}>
+	 */
+	public static function providerUnauthenticatedMethods(): array {
+		$methods = [
+			'demo.addTwoNumbers',
+			'demo.sayHello',
+			'pingback.extensions.getPingbacks',
+			'pingback.ping',
+			'system.getCapabilities',
+			'system.listMethods',
+		];
+
+		$rows = [];
+		foreach ( $methods as $method ) {
+			$rows[ $method ] = [
+				'method'  => $method,
+				'message' => "The {$method} method is served without credentials.",
 			];
 		}
 

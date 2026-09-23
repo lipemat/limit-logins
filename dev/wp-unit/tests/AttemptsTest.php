@@ -38,6 +38,54 @@ class AttemptsTest extends \WP_Test_REST_TestCase {
 	}
 
 
+	public function test_is_ip_blocked(): void {
+		/** @var \Fixture_Blocked_User $fixture */
+		$fixture = require \dirname( __DIR__ ) . '/fixtures/blocked-user.php';
+		$this->assertSame( Utils::in()->get_current_ip(), $fixture->attempt->ip );
+		$this->assertTrue( Attempts::in()->is_ip_blocked() );
+
+		$_SERVER['REMOTE_ADDR'] = '44.44.44.44';
+		$this->assertFalse( Attempts::in()->is_ip_blocked() );
+	}
+
+
+	/**
+	 * A block only the username matches leaves the IP free.
+	 */
+	public function test_is_ip_blocked_ignores_the_username(): void {
+		/** @var \Fixture_Blocked_User $fixture */
+		$fixture = require \dirname( __DIR__ ) . '/fixtures/blocked-user.php';
+		$_SERVER['REMOTE_ADDR'] = '45.45.45.45';
+
+		$this->assertTrue( Attempts::in()->is_blocked( $fixture->user->user_login ) );
+		$this->assertFalse( Attempts::in()->is_ip_blocked() );
+	}
+
+
+	public function test_is_ip_blocked_expired(): void {
+		require \dirname( __DIR__ ) . '/fixtures/blocked-user.php';
+		$this->assertTrue( Attempts::in()->is_ip_blocked() );
+
+		$data = Settings::in()->get_option( Settings::LOGGED_FAILURES, [] );
+		$data[0][ Attempt::EXPIRES ] = (int) \gmdate( 'U' ) - 1;
+		Settings::in()->update_option( Settings::LOGGED_FAILURES, $data );
+
+		$this->assertFalse( Attempts::in()->is_ip_blocked() );
+	}
+
+
+	public function test_is_ip_blocked_below_allowed_attempts(): void {
+		require \dirname( __DIR__ ) . '/fixtures/blocked-user.php';
+		$this->assertTrue( Attempts::in()->is_ip_blocked() );
+
+		$data = Settings::in()->get_option( Settings::LOGGED_FAILURES, [] );
+		$data[0][ Attempt::COUNT ] = Attempts::ALLOWED_ATTEMPTS - 1;
+		Settings::in()->update_option( Settings::LOGGED_FAILURES, $data );
+
+		$this->assertFalse( Attempts::in()->is_ip_blocked() );
+	}
+
+
 	public function test_username_failure(): void {
 		$password = wp_generate_password();
 		$user = self::factory()->user->create_and_get( [

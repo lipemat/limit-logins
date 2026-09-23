@@ -54,7 +54,7 @@ final class Rest {
 	 * @internal
 	 */
 	public function get_rest_blocked_error(): \WP_Error {
-		return new \WP_Error( Authenticate::CODE_BLOCKED, 'Too many failed login attempts.', [
+		return new \WP_Error( Authenticate::CODE_BLOCKED, Authenticate::MESSAGE_BLOCKED, [
 			'status' => 403,
 		] );
 	}

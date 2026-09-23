@@ -1,6 +1,7 @@
 <?php
 
 use Lipe\Limit_Logins\Authenticate\Unlock_Link;
+use Lipe\Limit_Logins\Utils;
 
 $GLOBALS['wp_tests_options']['permalink_structure'] = '%postname%/';
 
@@ -13,13 +14,14 @@ tests_add_filter( 'option_active_plugins', '__return_empty_array', 99 );
 tests_add_filter( 'site_option_active_sitewide_plugins', '__return_empty_array', 99 );
 
 tests_add_filter( 'plugins_loaded', function() {
-	// Add composer's autoloader.
-	if ( is_readable( dirname( __DIR__, 4 ) . '/autoload.php' ) ) {
-		require_once dirname( __DIR__, 4 ) . '/autoload.php';
-	}
+	// Allow extending final classes. Must run before the autoloader reaches them.
+	tests_allow_extending_final( Unlock_Link::class );
+	tests_allow_extending_final( Utils::class );
 
-	// Allow extending final classes.
-	allow_extending_final( Unlock_Link::class );
+	// Add composer's autoloader.
+	if ( \is_readable( \dirname( __DIR__, 4 ) . '/autoload.php' ) ) {
+		require_once \dirname( __DIR__, 4 ) . '/autoload.php';
+	}
 }, 1 );
 
 // Load the WP-Unit environment.

@@ -83,6 +83,23 @@ final class Attempts {
 
 
 	/**
+	 * Is the current IP blocked, ignoring the username entirely?
+	 *
+	 * For gateways such as XML-RPC, which submit no username we can read.
+	 */
+	public function is_ip_blocked(): bool {
+		$ip = Utils::in()->get_current_ip();
+		foreach ( $this->get_all() as $attempt ) {
+			if ( $attempt->ip === $ip && $attempt->is_blocked() ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+
+	/**
 	 * Remove a block for a given username.
 	 *
 	 * Does not match the IP, just the username.

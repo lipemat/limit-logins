@@ -34,6 +34,17 @@ final class Utils {
 	}
 
 
+	/**
+	 * The raw body of the current request.
+	 *
+	 * Re-readable for every content type the login gateways use.
+	 */
+	public function get_request_body(): string {
+		$body = \file_get_contents( 'php://input' );
+		return \is_string( $body ) ? $body : '';
+	}
+
+
 	public function is_rest_request(): bool {
 		if ( \function_exists( 'wp_is_rest_endpoint' ) ) {
 			return wp_is_rest_endpoint();

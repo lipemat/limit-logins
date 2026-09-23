@@ -21,7 +21,7 @@ final class Xmlrpc {
 
 	public function adjust_xmlrpc_error( \IXR_Error $ixr, \WP_Error $error ): \IXR_Error {
 		if ( Authenticate::CODE_BLOCKED === $error->get_error_code() ) {
-			$ixr->message = 'Too many failed login attempts.';
+			$ixr->message = Authenticate::MESSAGE_BLOCKED;
 			$ixr->code = $error->get_error_code();
 		}
 

@@ -18,6 +18,11 @@ final class Authenticate {
 	public const string CODE_BLOCKED = 'blocked';
 
 	/**
+	 * Plain text shown for a blocked attempt on the machine gateways.
+	 */
+	public const string MESSAGE_BLOCKED = 'Too many failed login attempts.';
+
+	/**
 	 * Core `authenticate` callbacks which check a password hash.
 	 */
 	public const array AUTH_CALLBACKS = [
@@ -101,6 +106,6 @@ final class Authenticate {
 	 * Message shown for a blocked attempt on every gateway.
 	 */
 	public function get_blocked_message(): string {
-		return '<strong>ERROR:</strong> Too many failed login attempts.<br />An email has been sent to the email on file with more information.';
+		return '<strong>ERROR:</strong> ' . self::MESSAGE_BLOCKED . '<br />An email has been sent to the email on file with more information.';
 	}
 }
