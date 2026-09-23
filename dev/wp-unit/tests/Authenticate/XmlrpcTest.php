@@ -5,6 +5,7 @@ namespace Lipe\Limit_Logins\Authenticate;
 
 use Lipe\Limit_Logins\Attempts;
 use Lipe\Limit_Logins\Authenticate;
+use Lipe\WP_Unit\Exceptions\TestHelperException;
 
 /**
  * @author Mat Lipe
@@ -19,7 +20,7 @@ class XmlrpcTest extends \WP_XMLRPC_UnitTestCase {
 
 
 	/**
-	 * @throws \TestHelperException
+	 * @throws TestHelperException
 	 */
 	public function test_blocked_skips_password_check(): void {
 		/** @var \Fixture_Blocked_User $fixture */

@@ -9,6 +9,8 @@ namespace Lipe\Limit_Logins;
  *
  */
 final class Utils {
+	public const string UNKNOWN_IP = '0.0.0.0';
+
 	public bool $did_exit = false;
 
 
@@ -16,7 +18,7 @@ final class Utils {
 		if ( isset( $_SERVER['REMOTE_ADDR'] ) && false !== \WP_Http::is_ip_address( sn( $_SERVER['REMOTE_ADDR'] ) ) ) {
 			return sn( $_SERVER['REMOTE_ADDR'] );
 		}
-		return '0.0.0.0';
+		return self::UNKNOWN_IP;
 	}
 
 

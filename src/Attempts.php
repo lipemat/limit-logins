@@ -102,21 +102,22 @@ final class Attempts {
 	/**
 	 * Remove a block for a given username.
 	 *
-	 * Does not match the IP, just the username.
+	 * Removes any attempts for the username or the current IP.
 	 */
 	public function remove_block( string $username ): void {
 		$attempts = $this->get_all();
-		if ( \function_exists( 'array_find_key' ) ) {
-			// phpcs:ignore PHPCompatibility.FunctionUse.NewFunctions.array_find_keyFound
-			$existing = \array_find_key( $attempts, fn( $attempt ) => $attempt->username === $username );
-		} else {
-			$existing = Utils::in()->find_index( $attempts, fn( $attempt ) => $attempt->username === $username );
-		}
+		$ip = Utils::in()->get_current_ip();
+		$found = \array_filter( $attempts, function( Attempt $attempt ) use ( $username, $ip ): bool {
+			if ( Utils::UNKNOWN_IP === $ip ) {
+				return $username === $attempt->username;
+			}
+			return $username === $attempt->username || $ip === $attempt->ip;
+		} );
 
-		if ( null !== $existing ) {
-			unset( $attempts[ $existing ] );
-			Settings::in()->update_option( Settings::LOGGED_FAILURES, \array_map( fn( Attempt $attempt ) => $attempt->jsonSerialize(), \array_values( $attempts ) ) );
-		}
+		$remaining_blocks = \array_diff_key( $attempts, $found );
+		Settings::in()->update_option( Settings::LOGGED_FAILURES, \array_map( function( Attempt $attempt ): array {
+			return $attempt->jsonSerialize();
+		}, \array_values( $remaining_blocks ) ) );
 	}
 
 
@@ -168,7 +169,9 @@ final class Attempts {
 	 */
 	private function get_existing_index( array $attempts, string $username ): ?int {
 		$ip = Utils::in()->get_current_ip();
-		$found = \array_filter( $attempts, fn( Attempt $attempt ) => $attempt->username === $username || $attempt->ip === $ip );
+		$found = \array_filter( $attempts, function( Attempt $attempt ) use ( $username, $ip ): bool {
+			return $username === $attempt->username || $ip === $attempt->ip;
+		} );
 		foreach ( $found as $i => $attempt ) {
 			/** @var Attempt $attempt */
 			if ( $attempt->is_blocked() ) {
