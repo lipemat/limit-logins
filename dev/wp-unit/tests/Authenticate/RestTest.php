@@ -106,13 +106,13 @@ class RestTest extends \WP_Test_REST_TestCase {
 
 		$result = $this->get_response( '/wp/v2/users', [ 'context' => 'edit' ], 'GET' );
 		$this->assertSame( 'Too many failed login attempts.', $result->get_data()['message'] );
-		$this->assertErrorResponse( Authenticate::CODE_BLOCKED, $result, 401 );
+		$this->assertErrorResponse( Authenticate::CODE_BLOCKED, $result, 403 );
 		$this->assertSame( Attempts::ALLOWED_ATTEMPTS, Attempts::in()->get_existing( $user->user_login )->get_count() );
 
 		// valid password.
 		$_SERVER['PHP_AUTH_PW'] = $app_pass;
 		$result = $this->get_response( '/wp/v2/users', [ 'context' => 'edit' ], 'GET' );
-		$this->assertErrorResponse( Authenticate::CODE_BLOCKED, $result, 401 );
+		$this->assertErrorResponse( Authenticate::CODE_BLOCKED, $result, 403 );
 		$this->assertSame( 'Too many failed login attempts.', $result->get_data()['message'] );
 		$this->assertSame( Attempts::ALLOWED_ATTEMPTS, Attempts::in()->get_existing( $user->user_login )->get_count() );
 	}
@@ -156,6 +156,6 @@ class RestTest extends \WP_Test_REST_TestCase {
 
 
 	private function tooManyError(): string {
-		return call_private_method( Authenticate::in(), 'get_error' );
+		return Authenticate::in()->get_blocked_message();
 	}
 }

@@ -9,6 +9,8 @@ namespace Lipe\Limit_Logins;
  *
  */
 final class Utils {
+	public const string UNKNOWN_IP = '0.0.0.0';
+
 	public bool $did_exit = false;
 
 
@@ -16,7 +18,7 @@ final class Utils {
 		if ( isset( $_SERVER['REMOTE_ADDR'] ) && false !== \WP_Http::is_ip_address( sn( $_SERVER['REMOTE_ADDR'] ) ) ) {
 			return sn( $_SERVER['REMOTE_ADDR'] );
 		}
-		return '0.0.0.0';
+		return self::UNKNOWN_IP;
 	}
 
 
@@ -31,6 +33,17 @@ final class Utils {
 	 */
 	public function get_rest_username(): string {
 		return 'rest-' . $this->get_current_ip();
+	}
+
+
+	/**
+	 * The raw body of the current request.
+	 *
+	 * Re-readable for every content type the login gateways use.
+	 */
+	public function get_request_body(): string {
+		$body = \file_get_contents( 'php://input' );
+		return \is_string( $body ) ? $body : '';
 	}
 
 

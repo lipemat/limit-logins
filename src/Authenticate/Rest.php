@@ -9,6 +9,8 @@ use Lipe\Limit_Logins\Traits\Singleton;
 use Lipe\Limit_Logins\Utils;
 
 /**
+ * Prevent blocked users or IP from authenticating during REST requests.
+ *
  * @author Mat Lipe
  * @since  April 2024
  *
@@ -17,8 +19,8 @@ final class Rest {
 	use Singleton;
 
 	private function hook(): void {
-		add_action( 'wp_authenticate_application_password_errors', [ $this, 'rest_authenticate' ], 9, 2 );
-		add_action( 'application_password_failed_authentication', [ $this, 'rest_authenticate' ], 9 );
+		add_action( 'wp_authenticate_application_password_errors', $this->rest_authenticate( ... ), 9, 2 );
+		add_action( 'application_password_failed_authentication', $this->rest_authenticate( ... ), 9 );
 	}
 
 
@@ -34,9 +36,8 @@ final class Rest {
 			return;
 		}
 		$username = $user->user_login ?? Utils::in()->get_rest_username();
-		$existing = Attempts::in()->get_existing( $username );
-		if ( null !== $existing && $existing->is_blocked() ) {
-			add_filter( 'rest_request_after_callbacks', [ $this, 'get_rest_blocked_error' ], 100 );
+		if ( Attempts::in()->is_blocked( $username ) ) {
+			add_filter( 'rest_request_after_callbacks', $this->get_rest_blocked_error( ... ), 1_000 );
 		}
 	}
 
@@ -48,14 +49,13 @@ final class Rest {
 	 * our "too many failed login attempts" error. Sending our custom error prevents
 	 * the attacker from getting any more information.
 	 *
-	 * @note Always use code `401` to say the authentication failed even if it passed.
-	 * @see  rest_authorization_required_code
+	 * @note Always use code `403`, even if the authentication passed.
 	 *
 	 * @internal
 	 */
 	public function get_rest_blocked_error(): \WP_Error {
-		return new \WP_Error( Authenticate::CODE_BLOCKED, 'Too many failed login attempts.', [
-			'status' => 401,
+		return new \WP_Error( Authenticate::CODE_BLOCKED, Authenticate::MESSAGE_BLOCKED, [
+			'status' => 403,
 		] );
 	}
 }

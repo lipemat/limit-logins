@@ -16,8 +16,8 @@ use Lipe\Limit_Logins\Traits\Singleton;
 final class Attempts {
 	use Singleton;
 
-	public const  ALLOWED_ATTEMPTS = 5;
-	public const  DURATION         = HOUR_IN_SECONDS * 12;
+	public const int ALLOWED_ATTEMPTS = 5;
+	public const int DURATION         = HOUR_IN_SECONDS * 12;
 
 
 	private function hook(): void {
@@ -74,35 +74,62 @@ final class Attempts {
 
 
 	/**
+	 * Is the username or the current IP blocked?
+	 */
+	public function is_blocked( string $username ): bool {
+		$existing = $this->get_existing( $username );
+		return $existing instanceof Attempt && $existing->is_blocked();
+	}
+
+
+	/**
+	 * Is the current IP blocked, ignoring the username entirely?
+	 *
+	 * For gateways such as XML-RPC, which submit no username we can read.
+	 */
+	public function is_ip_blocked(): bool {
+		$ip = Utils::in()->get_current_ip();
+		foreach ( $this->get_all() as $attempt ) {
+			if ( $attempt->ip === $ip && $attempt->is_blocked() ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+
+	/**
 	 * Remove a block for a given username.
 	 *
-	 * Does not match the IP, just the username.
+	 * Matches the username only. Matching the current IP would let a second
+	 * account clear a block recorded against someone else.
 	 */
 	public function remove_block( string $username ): void {
 		$attempts = $this->get_all();
-		if ( \function_exists( 'array_find_key' ) ) {
-			// phpcs:ignore PHPCompatibility.FunctionUse.NewFunctions.array_find_keyFound
-			$existing = \array_find_key( $attempts, fn( $attempt ) => $attempt->username === $username );
-		} else {
-			$existing = Utils::in()->find_index( $attempts, fn( $attempt ) => $attempt->username === $username );
-		}
+		$found = \array_filter( $attempts, function( Attempt $attempt ) use ( $username ): bool {
+			return $username === $attempt->username;
+		} );
 
-		if ( null !== $existing ) {
-			unset( $attempts[ $existing ] );
-			Settings::in()->update_option( Settings::LOGGED_FAILURES, \array_map( fn( Attempt $attempt ) => $attempt->jsonSerialize(), \array_values( $attempts ) ) );
-		}
+		$remaining_blocks = \array_diff_key( $attempts, $found );
+		Settings::in()->update_option( Settings::LOGGED_FAILURES, \array_map( function( Attempt $attempt ): array {
+			return $attempt->jsonSerialize();
+		}, \array_values( $remaining_blocks ) ) );
 	}
 
 
 	/**
 	 * Get all attempts from options translated into Attempt objects.
 	 *
+	 * Incomplete rows are dropped or defaulted, so hand edited settings
+	 * never turn into warnings.
+	 *
 	 * @return list<Attempt>
 	 */
 	public function get_all(): array {
 		$attempts = Settings::in()->get_option( Settings::LOGGED_FAILURES, [] );
 		$attempts = \array_filter( $attempts, function( $attempt ) {
-			if ( ! isset( $attempt[ Attempt::USERNAME ] ) || ! isset( $attempt[ Attempt::IP ] ) ) {
+			if ( ! isset( $attempt[ Attempt::USERNAME ], $attempt[ Attempt::IP ] ) ) {
 				return false;
 			}
 			return ! ( '' === $attempt[ Attempt::USERNAME ] && '' === $attempt[ Attempt::IP ] );
@@ -139,8 +166,11 @@ final class Attempts {
 	 */
 	private function get_existing_index( array $attempts, string $username ): ?int {
 		$ip = Utils::in()->get_current_ip();
-		$found = \array_filter( $attempts, fn( $attempt ) => $attempt->username === $username || $attempt->ip === $ip );
+		$found = \array_filter( $attempts, function( Attempt $attempt ) use ( $username, $ip ): bool {
+			return $username === $attempt->username || $ip === $attempt->ip;
+		} );
 		foreach ( $found as $i => $attempt ) {
+			/** @var Attempt $attempt */
 			if ( $attempt->is_blocked() ) {
 				return $i;
 			}

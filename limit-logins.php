@@ -26,6 +26,9 @@ use Lipe\Limit_Logins\WP_Cli\Commands;
 
 const LIMIT_LOGINS_PATH = __DIR__;
 
+// Blocked login submissions exit here, before the rest of WordPress loads.
+Early_Drop::init();
+
 add_action( 'plugins_loaded', function() {
 	Attempts::init();
 	Authenticate::init();

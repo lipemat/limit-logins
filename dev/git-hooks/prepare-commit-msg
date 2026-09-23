@@ -1,0 +1,10 @@
+#!/bin/bash
+######################################################
+#
+# Prepend the current branch name to every commit message.
+#
+# @version 2.2.1
+#
+######################################################
+
+source /e/scripts/git/hooks/version-1/prepare-commit-msg

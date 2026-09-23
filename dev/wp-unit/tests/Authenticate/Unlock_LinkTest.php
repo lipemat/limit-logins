@@ -6,7 +6,6 @@ namespace Lipe\Limit_Logins\Authenticate;
 
 use Lipe\Limit_Logins\Attempts;
 use Lipe\Limit_Logins\Utils;
-use PHPUnit\Framework\MockObject\NeverReturningMethodException;
 
 /**
  * @author Mat Lipe

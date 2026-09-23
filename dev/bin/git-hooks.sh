@@ -27,6 +27,7 @@ PROJECT=${PROJECT//\\//}
 
 HOOKS=(
     pre-commit
+    prepare-commit-msg
 )
 
 # Cross platform symlink creation function
