@@ -57,7 +57,7 @@ flowchart TD
 
 ## Notifications
 
-An email is sent to the blocked user with a link to reset their password or unlock their account. Completing a password reset or following the unlock link clears all attempts for the user's username and the IP making that request, including partial attempts. This allows a legitimate user to regain access without waiting for the lockout period to expire.
+An email is sent to the blocked user with a link to reset their password or unlock their account. Completing a password reset or following the unlock link clears the attempts recorded for that username. This allows a legitimate user to regain access without waiting for the lockout period to expire.
 
 Blocked login pages also link to the lost-password form. Opening that form does not clear a block; completing the password reset does.
 

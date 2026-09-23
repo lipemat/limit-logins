@@ -215,15 +215,19 @@ class AttemptsTest extends \WP_Test_REST_TestCase {
 		/** @var \Fixture_Blocked_User $user_2 */
 		$user_2 = require \dirname( __DIR__ ) . '/fixtures/blocked-user.php';
 
-		$this->assertSame( [ $user_1->user->user_login, $user_2->user->user_login ], self::attempt_usernames(), 'Both username and current-IP attempts should exist before removal.' );
+		$this->assertSame( [ $user_1->user->user_login, $user_2->user->user_login ], self::attempt_usernames(), 'Both attempts should exist before removal.' );
 
 		Attempts::in()->remove_block( $user_1->user->user_login );
 
-		$this->assertSame( [], self::attempt_usernames(), 'Removing a username should also remove attempts from the current IP.' );
+		$this->assertSame( [ $user_2->user->user_login ], self::attempt_usernames(), 'Only the named username should be removed.' );
 	}
 
 
-	public function test_remove_block_by_ip_without_username_match(): void {
+	/**
+	 * A block belongs to the username it was recorded against, so a second
+	 * account cannot clear the IP behind someone else's block.
+	 */
+	public function test_remove_block_preserves_current_ip(): void {
 		Settings::in()->update_option( Settings::LOGGED_FAILURES, [
 			[ Attempt::USERNAME => 'blocked-user', Attempt::IP => Utils::in()->get_current_ip() ],
 		] );
@@ -231,21 +235,7 @@ class AttemptsTest extends \WP_Test_REST_TestCase {
 
 		Attempts::in()->remove_block( 'different-username' );
 
-		$this->assertSame( [], self::attempt_usernames(), 'A matching IP should remove the attempt even when the username differs.' );
-	}
-
-
-	public function test_remove_block_preserves_unrelated_ip(): void {
-		$_SERVER['REMOTE_ADDR'] = '33.33.33.33';
-		Settings::in()->update_option( Settings::LOGGED_FAILURES, [
-			[ Attempt::USERNAME => 'target', Attempt::IP => '192.0.2.10' ],
-			[ Attempt::USERNAME => 'unrelated', Attempt::IP => '192.0.2.20' ],
-		] );
-		$this->assertSame( [ 'target', 'unrelated' ], self::attempt_usernames() );
-
-		Attempts::in()->remove_block( 'target' );
-
-		$this->assertSame( [ 'unrelated' ], self::attempt_usernames(), 'An attempt for another username and IP must remain.' );
+		$this->assertSame( [ 'blocked-user' ], self::attempt_usernames(), 'A matching IP must not remove another username\'s attempt.' );
 	}
 
 
@@ -259,39 +249,6 @@ class AttemptsTest extends \WP_Test_REST_TestCase {
 		Attempts::in()->remove_block( 'missing-user' );
 
 		$this->assertSame( [ 'unrelated' ], self::attempt_usernames(), 'An unrelated username and IP should not remove any attempt.' );
-	}
-
-
-	public function test_remove_block_removes_all_matching_attempts(): void {
-		$ip = Utils::in()->get_current_ip();
-		$attempts = [
-			[ Attempt::USERNAME => 'target', Attempt::IP => '192.0.2.10', Attempt::COUNT => Attempts::ALLOWED_ATTEMPTS ],
-			[ Attempt::USERNAME => 'first-ip-user', Attempt::IP => $ip, Attempt::COUNT => Attempts::ALLOWED_ATTEMPTS ],
-			[ Attempt::USERNAME => 'partial-ip-user', Attempt::IP => $ip, Attempt::COUNT => 2 ],
-			[ Attempt::USERNAME => 'target', Attempt::IP => '192.0.2.20', Attempt::COUNT => Attempts::ALLOWED_ATTEMPTS ],
-			[ Attempt::USERNAME => 'unrelated', Attempt::IP => '192.0.2.30', Attempt::COUNT => Attempts::ALLOWED_ATTEMPTS ],
-		];
-		Settings::in()->update_option( Settings::LOGGED_FAILURES, $attempts );
-		$this->assertSame( [ 'target', 'first-ip-user', 'partial-ip-user', 'target', 'unrelated' ], self::attempt_usernames() );
-
-		Attempts::in()->remove_block( 'target' );
-
-		$this->assertSame( [ 'unrelated' ], self::attempt_usernames(), 'All username and IP matches, including partial attempts, should be removed.' );
-	}
-
-
-	public function test_remove_block_unknown_ip_does_not_clear_other_users(): void {
-		$_SERVER['REMOTE_ADDR'] = 'not-an-ip';
-		Settings::in()->update_option( Settings::LOGGED_FAILURES, [
-			[ Attempt::USERNAME => 'target', Attempt::IP => '192.0.2.10' ],
-			[ Attempt::USERNAME => 'unrelated', Attempt::IP => Utils::UNKNOWN_IP ],
-		] );
-		$this->assertSame( Utils::UNKNOWN_IP, Utils::in()->get_current_ip(), 'An invalid request IP should use the unknown-IP marker.' );
-		$this->assertSame( [ 'target', 'unrelated' ], self::attempt_usernames(), 'Both records should exist before removal.' );
-
-		Attempts::in()->remove_block( 'target' );
-
-		$this->assertSame( [ 'unrelated' ], self::attempt_usernames(), 'The unknown-IP marker must not match another user.' );
 	}
 
 

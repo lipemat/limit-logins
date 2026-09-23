@@ -102,16 +102,13 @@ final class Attempts {
 	/**
 	 * Remove a block for a given username.
 	 *
-	 * Removes any attempts for the username or the current IP.
+	 * Matches the username only. Matching the current IP would let a second
+	 * account clear a block recorded against someone else.
 	 */
 	public function remove_block( string $username ): void {
 		$attempts = $this->get_all();
-		$ip = Utils::in()->get_current_ip();
-		$found = \array_filter( $attempts, function( Attempt $attempt ) use ( $username, $ip ): bool {
-			if ( Utils::UNKNOWN_IP === $ip ) {
-				return $username === $attempt->username;
-			}
-			return $username === $attempt->username || $ip === $attempt->ip;
+		$found = \array_filter( $attempts, function( Attempt $attempt ) use ( $username ): bool {
+			return $username === $attempt->username;
 		} );
 
 		$remaining_blocks = \array_diff_key( $attempts, $found );

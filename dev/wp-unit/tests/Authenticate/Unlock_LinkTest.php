@@ -5,8 +5,6 @@ declare( strict_types=1 );
 namespace Lipe\Limit_Logins\Authenticate;
 
 use Lipe\Limit_Logins\Attempts;
-use Lipe\Limit_Logins\Attempts\Attempt;
-use Lipe\Limit_Logins\Settings;
 use Lipe\Limit_Logins\Utils;
 
 /**
@@ -84,32 +82,6 @@ class Unlock_LinkTest extends \WP_UnitTestCase {
 		$this->assertNull( Attempts::in()->get_existing( $attempt->username ) );
 		$this->assertTrue( Utils::in()->did_exit );
 		$this->assertSame( 'Account Unlocked<div class="notice notice-info message"><p>Your account has been unlocked. <a href="http://limit-logins.loc/wp-login.php">Log in</a></p></div>', Unlock_LinkTest::$rendered );
-	}
-
-
-	public function test_valid_attempt_clears_other_attempts_on_current_ip(): void {
-		require \dirname( __DIR__, 2 ) . '/fixtures/blocked-user.php';
-		$attempts = Settings::in()->get_option( Settings::LOGGED_FAILURES, [] );
-		$other_on_ip = $attempts[0];
-		$other_on_ip[ Attempt::USERNAME ] = 'other-on-ip';
-		$other_on_ip[ Attempt::KEY ] = '';
-		$other_on_ip[ Attempt::COUNT ] = 2;
-		$unrelated = $other_on_ip;
-		$unrelated[ Attempt::USERNAME ] = 'unrelated';
-		$unrelated[ Attempt::IP ] = '192.0.2.30';
-		Settings::in()->update_option( Settings::LOGGED_FAILURES, [ $attempts[0], $other_on_ip, $unrelated ] );
-		$this->assertCount( 3, Attempts::in()->get_all(), 'The unlock target, current-IP attempt, and unrelated attempt should exist.' );
-		$query = wp_parse_url( Unlock_Link::in()->get_unlock_url( self::$unlock_key ), PHP_URL_QUERY );
-		self::assertIsString( $query, 'The unlock URL should include an action and key.' );
-		\parse_str( $query, $params );
-		$_GET = \array_merge( $_GET, $params );
-
-		do_action( 'login_form_' . $params['action'] );
-
-		$this->assertSame( [ 'unrelated' ], \array_map( function( Attempt $attempt ): string {
-			return $attempt->username;
-		}, Attempts::in()->get_all() ), 'Unlocking should remove the target and every current-IP attempt while preserving another IP.' );
-		$this->assertTrue( Utils::in()->did_exit, 'The valid unlock link should render the completion page.' );
 	}
 
 
