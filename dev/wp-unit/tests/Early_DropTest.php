@@ -3,6 +3,7 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins;
 
+use Lipe\Lib\Util\Testing;
 use Lipe\Limit_Logins\Attempts\Attempt;
 use Lipe\Limit_Logins\Attempts\Gateway;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -643,7 +644,7 @@ final class Early_DropTest extends \WP_UnitTestCase {
 	private function assertDropped(): string {
 		$rendered = $this->drop();
 
-		$this->assertTrue( Utils::in()->did_exit, 'The request should have exited.' );
+		$this->assertTrue( Testing::in()->did_exit, 'The request should have exited.' );
 		$this->assertSame( [ 403 ], $this->statuses, 'The response should be a 403.' );
 		$this->assertSame( [], $this->writes, 'A blocked attempt should not write to the database.' );
 		$this->assertStringContainsString( Authenticate::MESSAGE_BLOCKED, $rendered, 'The blocked message should be rendered.' );
@@ -691,7 +692,7 @@ final class Early_DropTest extends \WP_UnitTestCase {
 	private function assertNotDropped( string $message = 'The request should not have been dropped.' ): void {
 		$rendered = $this->drop();
 
-		$this->assertFalse( Utils::in()->did_exit, $message );
+		$this->assertFalse( Testing::in()->did_exit, $message );
 		$this->assertSame( '', $rendered, $message );
 		$this->assertSame( [], $this->statuses, $message );
 	}
@@ -707,7 +708,8 @@ final class Early_DropTest extends \WP_UnitTestCase {
 		\ob_start();
 		try {
 			call_private_method( Early_Drop::in(), 'maybe_drop' );
-		} catch ( \OutOfBoundsException ) {
+		} catch ( \OutOfBoundsException $e ) {
+			$this->assertSame( Testing::CODE_EXIT, $e->getCode(), 'Only an exit should end the request.' );
 		}
 
 		return (string) \ob_get_clean();

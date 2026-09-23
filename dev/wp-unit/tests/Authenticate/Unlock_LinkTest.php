@@ -4,8 +4,9 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins\Authenticate;
 
+use Lipe\Lib\Util\Testing;
 use Lipe\Limit_Logins\Attempts;
-use Lipe\Limit_Logins\Utils;
+use PHPUnit\Framework\Assert;
 
 /**
  * @author Mat Lipe
@@ -35,7 +36,8 @@ class Unlock_LinkTest extends \WP_UnitTestCase {
 				ob_start();
 				try {
 					parent::render();
-				} catch ( \OutOfBoundsException ) {
+				} catch ( \OutOfBoundsException $e ) {
+					Assert::assertSame( Testing::CODE_EXIT, $e->getCode(), 'Only an exit should end the request.' );
 				}
 				Unlock_LinkTest::$rendered = ob_get_clean();
 			}
@@ -64,7 +66,7 @@ class Unlock_LinkTest extends \WP_UnitTestCase {
 
 		$_GET[ $key ] = 'invalid';
 		$this->invalidAttempt();
-		$this->assertFalse( Utils::in()->did_exit );
+		$this->assertFalse( Testing::in()->did_exit );
 	}
 
 
@@ -80,7 +82,7 @@ class Unlock_LinkTest extends \WP_UnitTestCase {
 		do_action( 'login_form_' . $action );
 
 		$this->assertNull( Attempts::in()->get_existing( $attempt->username ) );
-		$this->assertTrue( Utils::in()->did_exit );
+		$this->assertTrue( Testing::in()->did_exit );
 		$this->assertSame( 'Account Unlocked<div class="notice notice-info message"><p>Your account has been unlocked. <a href="http://limit-logins.loc/wp-login.php">Log in</a></p></div>', Unlock_LinkTest::$rendered );
 	}
 

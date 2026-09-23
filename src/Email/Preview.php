@@ -4,10 +4,10 @@ declare( strict_types=1 );
 namespace Lipe\Limit_Logins\Email;
 
 use Lipe\Lib\Api\Api;
+use Lipe\Lib\Util\Testing;
 use Lipe\Limit_Logins\Attempts;
 use Lipe\Limit_Logins\Attempts\Attempt;
 use Lipe\Limit_Logins\Traits\Singleton;
-use Lipe\Limit_Logins\Utils;
 use function Lipe\Limit_Logins\container;
 
 /**
@@ -68,7 +68,7 @@ final class Preview {
 	private function render( Email $email ): void {
 		$this->is_preview = true;
 		echo $email->get_message(); //phpcs:ignore
-		Utils::in()->exit();
+		Testing::in()->exit();
 	}
 
 

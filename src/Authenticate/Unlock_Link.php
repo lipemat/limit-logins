@@ -4,13 +4,13 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins\Authenticate;
 
+use Lipe\Lib\Util\Testing;
 use Lipe\Limit_Logins\Attempts;
 use Lipe\Limit_Logins\Attempts\Attempt;
 use Lipe\Limit_Logins\Email\Blocked;
 use Lipe\Limit_Logins\Email\Preview;
 use Lipe\Limit_Logins\Email\Util;
 use Lipe\Limit_Logins\Traits\Singleton;
-use Lipe\Limit_Logins\Utils;
 use function Lipe\Limit_Logins\container;
 use function Lipe\Limit_Logins\sn;
 
@@ -120,7 +120,7 @@ final class Unlock_Link {
 			)
 		);
 		login_footer();
-		Utils::in()->exit();
+		Testing::in()->exit();
 	}
 
 

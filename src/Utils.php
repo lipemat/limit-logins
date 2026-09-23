@@ -11,8 +11,6 @@ namespace Lipe\Limit_Logins;
 final class Utils {
 	public const string UNKNOWN_IP = '0.0.0.0';
 
-	public bool $did_exit = false;
-
 
 	public function get_current_ip(): string {
 		if ( isset( $_SERVER['REMOTE_ADDR'] ) && false !== \WP_Http::is_ip_address( sn( $_SERVER['REMOTE_ADDR'] ) ) ) {
@@ -88,19 +86,6 @@ final class Utils {
 			}
 		}
 		return null;
-	}
-
-
-	/**
-	 * @todo Switch to \Lipe\Lib\Util\Testing::exit() when we can require 5.0.0
-	 * @phpstan-return  never
-	 */
-	public function exit(): void {
-		if ( \defined( 'WP_UNIT_DIR' ) ) {
-			$this->did_exit = true;
-			throw new \OutOfBoundsException( 'Exit called in test context.' );
-		}
-		exit;
 	}
 
 
