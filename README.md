@@ -28,9 +28,38 @@ Sorry attackers, but I'm over you. :-p
 
 If the same IP or username fails to log in more than 5 times then neither the user, nor the IP will be able to log in for 12 hours.
 
+## Blocking flow
+
+```mermaid
+flowchart TD
+    A["Incoming request"] --> B{"Login submission?"}
+    B -- "No: pages, GET login form,<br/>password recovery, unlock link" --> Z["Normal WordPress request"]
+    B -- "Yes" --> D["Plugin-file load:<br/>read raw autoloaded option"]
+    D --> C{"Early drop disabled?"}
+    C -- "Yes" --> H["Full bootstrap"]
+    C -- "No" --> E{"Gateway"}
+    E -- "wp-login POST<br/>Woo login<br/>REST Basic auth" --> F{"IP or submitted<br/>username blocked?"}
+    E -- "XML-RPC<br/>authenticated method" --> G{"IP blocked?"}
+    E -- "Custom wp_signon() form" --> H
+    F -- "Yes" --> X["403 + blocked response<br/>exit before bootstrap"]
+    G -- "Yes" --> X
+    F -- "No" --> H
+    G -- "No" --> H
+    H --> I{"authenticate fallback:<br/>blocked before password hash?"}
+    I -- "Yes" --> J["Return WP_Error;<br/>403 for known gateways"]
+    I -- "No" --> K["Check credentials"]
+    K -- "Success" --> L["Logged in"]
+    K -- "Failure" --> M["Record failure"]
+    M --> N{"Five failures reached?"}
+    N -- "Yes" --> O["Block IP + username for 12 hours<br/>send unlock/reset email"]
+    N -- "No" --> P["Normal failure response"]
+```
+
 ## Notifications
 
-An email is sent to the blocked user with a link to reset their password or unlock their account. This allows a legitimate user to regain access without waiting for the lockout period to expire.
+An email is sent to the blocked user with a link to reset their password or unlock their account. Completing a password reset or following the unlock link clears all attempts for the user's username and the IP making that request, including partial attempts. This allows a legitimate user to regain access without waiting for the lockout period to expire.
+
+Blocked login pages also link to the lost-password form. Opening that form does not clear a block; completing the password reset does.
 
 ## User Security
 
