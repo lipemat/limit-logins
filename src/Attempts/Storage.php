@@ -3,9 +3,9 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins\Attempts;
 
+use Lipe\Lib\Container\Instance;
 use Lipe\Limit_Logins\Attempts;
 use Lipe\Limit_Logins\Settings;
-use function Lipe\Limit_Logins\container;
 
 /**
  * Logged failures, kept in their own option which is not autoloaded.
@@ -18,6 +18,8 @@ use function Lipe\Limit_Logins\container;
  * @phpstan-import-type DATA from Attempt
  */
 final class Storage {
+	use Instance;
+
 	public const string OPTION = 'lipe/limit-logins/attempts/storage/logged-failures';
 
 	/**
@@ -171,10 +173,5 @@ final class Storage {
 				Attempt::USERNAME => $row[ Attempt::USERNAME ],
 			] );
 		}, $rows ) );
-	}
-
-
-	public static function in(): self {
-		return container()->get( __CLASS__ );
 	}
 }

@@ -3,12 +3,16 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins;
 
+use Lipe\Lib\Container\Instance;
+
 /**
  * @author Mat Lipe
  * @since  April 2024
  *
  */
 final class Utils {
+	use Instance;
+
 	public const string UNKNOWN_IP = '0.0.0.0';
 
 
@@ -86,10 +90,5 @@ final class Utils {
 			}
 		}
 		return null;
-	}
-
-
-	public static function in(): Utils {
-		return container()->get( __CLASS__ );
 	}
 }

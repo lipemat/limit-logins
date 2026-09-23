@@ -4,14 +4,13 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins\Authenticate;
 
+use Lipe\Lib\Container\Instance;
 use Lipe\Lib\Util\Testing;
 use Lipe\Limit_Logins\Attempts;
 use Lipe\Limit_Logins\Attempts\Attempt;
 use Lipe\Limit_Logins\Email\Blocked;
 use Lipe\Limit_Logins\Email\Preview;
 use Lipe\Limit_Logins\Email\Util;
-use Lipe\Limit_Logins\Traits\Singleton;
-use function Lipe\Limit_Logins\container;
 use function Lipe\Limit_Logins\sn;
 
 /**
@@ -20,18 +19,12 @@ use function Lipe\Limit_Logins\sn;
  *
  */
 final class Unlock_Link {
-	use Singleton;
+	use Instance;
 
-	private const ACTION     = 'unlock-account';
-	private const KEY        = 'unlock-key';
-	private const ERROR_CODE = 'invalid-unlock';
+	public const string ACTION = 'unlock-account';
 
-
-	private function hook(): void {
-		add_action( 'login_form_' . self::ACTION, function() {
-			self::in()->maybe_unlock();
-		} );
-	}
+	private const string KEY        = 'unlock-key';
+	private const string ERROR_CODE = 'invalid-unlock';
 
 
 	/**
@@ -130,7 +123,7 @@ final class Unlock_Link {
 	 * A key passed to the URL much be key set to the block before
 	 * it is hashed and stored.
 	 */
-	private function maybe_unlock(): void {
+	public function maybe_unlock(): void {
 		$block = null;
 		if ( isset( $_GET[ self::KEY ] ) ) {
 			$block = $this->get_matching_attempt( sn( $_GET[ self::KEY ] ) );
@@ -174,10 +167,5 @@ final class Unlock_Link {
 			$wp_hasher = new \PasswordHash( 8, true );
 		}
 		return $wp_hasher;
-	}
-
-
-	public static function in(): Unlock_Link {
-		return container()->get( __CLASS__ );
 	}
 }

@@ -4,6 +4,7 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins\Authenticate;
 
+use Lipe\Lib\Container\Container;
 use Lipe\Lib\Util\Testing;
 use Lipe\Limit_Logins\Attempts;
 use PHPUnit\Framework\Assert;
@@ -24,7 +25,7 @@ class Unlock_LinkTest extends \WP_UnitTestCase {
 		self::$unlock_key = '';
 		self::$rendered = '';
 
-		change_container_object( Unlock_Link::class, new class() extends Unlock_Link {
+		Container::instance()->set_service( Unlock_Link::class, new class() extends Unlock_Link {
 			public function get_unlock_key(): array {
 				$keys = parent::get_unlock_key();
 				Unlock_LinkTest::$unlock_key = $keys['key'];

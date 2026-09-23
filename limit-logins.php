@@ -19,9 +19,11 @@ namespace Lipe\Limit_Logins;
 
 use Lipe\Limit_Logins\Authenticate\Reset_Password;
 use Lipe\Limit_Logins\Authenticate\Rest;
-use Lipe\Limit_Logins\Authenticate\Unlock_Link;
 use Lipe\Limit_Logins\Authenticate\Xmlrpc;
-use Lipe\Limit_Logins\Email\Preview;
+use Lipe\Limit_Logins\Service_Providers\Attempts_Provider;
+use Lipe\Limit_Logins\Service_Providers\Authenticate_Provider;
+use Lipe\Limit_Logins\Service_Providers\Email_Provider;
+use Lipe\Limit_Logins\Service_Providers\Security_Provider;
 use Lipe\Limit_Logins\WP_Cli\Commands;
 
 const LIMIT_LOGINS_PATH = __DIR__;
@@ -30,13 +32,16 @@ const LIMIT_LOGINS_PATH = __DIR__;
 Early_Drop::init();
 
 add_action( 'plugins_loaded', function() {
+	( new Attempts_Provider() )->register();
+	( new Authenticate_Provider() )->register();
+	( new Email_Provider() )->register();
+	( new Security_Provider() )->register();
+
 	Attempts::init();
 	Authenticate::init();
-	Preview::init();
 	Settings::init();
 	Reset_Password::init();
 	Rest::init();
-	Unlock_Link::init();
 	Xmlrpc::init();
 } );
 
@@ -70,13 +75,4 @@ function es( $value ): string {
 		return (string) $value->value;
 	}
 	return (string) $value;
-}
-
-/**
- * Return the container.
- *
- * @return Container
- */
-function container(): Container {
-	return Container::instance();
 }

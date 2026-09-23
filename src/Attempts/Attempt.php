@@ -3,6 +3,7 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins\Attempts;
 
+use Lipe\Lib\Container\Factory;
 use Lipe\Limit_Logins\Attempts;
 use Lipe\Limit_Logins\Utils;
 
@@ -20,12 +21,14 @@ use Lipe\Limit_Logins\Utils;
  * }
  */
 final class Attempt implements \JsonSerializable {
-	public const IP       = 'ip';
-	public const USERNAME = 'username';
-	public const GATEWAY  = 'gateway';
-	public const COUNT    = 'count';
-	public const EXPIRES  = 'expires';
-	public const KEY      = 'key';
+	use Factory;
+
+	public const string IP       = 'ip';
+	public const string USERNAME = 'username';
+	public const string GATEWAY  = 'gateway';
+	public const string COUNT    = 'count';
+	public const string EXPIRES  = 'expires';
+	public const string KEY      = 'key';
 
 
 	private function __construct(
@@ -89,7 +92,7 @@ final class Attempt implements \JsonSerializable {
 	 *
 	 */
 	public static function new_attempt( string $username ): self {
-		return new self(
+		return self::factorize(
 			Utils::in()->get_current_ip(),
 			$username,
 			Gateway::detect(),
@@ -104,7 +107,7 @@ final class Attempt implements \JsonSerializable {
 	 * @phpstan-param DATA $data
 	 */
 	public static function factory( array $data ): self {
-		return new self(
+		return self::factorize(
 			$data[ self::IP ],
 			$data[ self::USERNAME ],
 			Gateway::from( $data[ self::GATEWAY ] ),

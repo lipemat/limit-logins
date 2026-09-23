@@ -3,8 +3,8 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins\Security;
 
+use Lipe\Lib\Container\Instance;
 use Lipe\Limit_Logins\Settings;
-use function Lipe\Limit_Logins\container;
 
 /**
  * @author Mat Lipe
@@ -12,12 +12,14 @@ use function Lipe\Limit_Logins\container;
  *
  */
 final class Users {
+	use Instance;
+
 	/**
 	 * Usernames which are commonly targeted by attackers and are be allowed.
 	 *
 	 * @var array<string>
 	 */
-	private const ILLEGAL_USERNAMES = [
+	private const array ILLEGAL_USERNAMES = [
 		'111',
 		'123',
 		'123123',
@@ -219,10 +221,5 @@ final class Users {
 	 */
 	public function remove_author_body_classes( array $classes ): array {
 		return \array_filter( $classes, fn( $css_class ) => ! \str_contains( $css_class, 'author-' ) );
-	}
-
-
-	public static function in(): Users {
-		return container()->get( __CLASS__ );
 	}
 }

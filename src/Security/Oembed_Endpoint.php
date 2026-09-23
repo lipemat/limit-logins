@@ -3,8 +3,8 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins\Security;
 
+use Lipe\Lib\Container\Instance;
 use Lipe\Limit_Logins\Settings;
-use function Lipe\Limit_Logins\container;
 
 /**
  * @author  Mat Lipe
@@ -24,6 +24,7 @@ use function Lipe\Limit_Logins\container;
  * }
  */
 final class Oembed_Endpoint {
+	use Instance;
 
 	/**
 	 * The oEmbed endpoint exposes the main user's username to the public.
@@ -70,10 +71,5 @@ final class Oembed_Endpoint {
 		$data['author_name'] = get_bloginfo( 'name' );
 		$data['author_url'] = get_home_url();
 		return $data;
-	}
-
-
-	public static function in(): Oembed_Endpoint {
-		return container()->get( __CLASS__ );
 	}
 }

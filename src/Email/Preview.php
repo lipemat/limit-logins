@@ -4,11 +4,10 @@ declare( strict_types=1 );
 namespace Lipe\Limit_Logins\Email;
 
 use Lipe\Lib\Api\Api;
+use Lipe\Lib\Container\Instance;
 use Lipe\Lib\Util\Testing;
 use Lipe\Limit_Logins\Attempts;
 use Lipe\Limit_Logins\Attempts\Attempt;
-use Lipe\Limit_Logins\Traits\Singleton;
-use function Lipe\Limit_Logins\container;
 
 /**
  * @author Mat Lipe
@@ -16,19 +15,13 @@ use function Lipe\Limit_Logins\container;
  *
  */
 final class Preview {
-	use Singleton;
+	use Instance;
 
-	private const ENDPOINT = 'lipe__limit_logins__email__preview';
-	private const NONCE    = 'lipe/limit-logins/email/preview/nonce';
+	public const string ENDPOINT = 'lipe__limit_logins__email__preview';
+
+	private const string NONCE = 'lipe/limit-logins/email/preview/nonce';
 
 	private bool $is_preview = false;
-
-	private function hook(): void {
-		add_action( Api::in()->get_action( self::ENDPOINT ), function() {
-			$this->preview();
-		} );
-		Api::init_once();
-	}
 
 
 	public function get_url(): string {
@@ -48,7 +41,7 @@ final class Preview {
 	}
 
 
-	private function preview(): void {
+	public function preview(): void {
 		check_admin_referer( self::NONCE );
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
@@ -81,10 +74,5 @@ final class Preview {
 		) {
 			return false !== username_exists( $attempt->username );
 		} );
-	}
-
-
-	public static function in(): Preview {
-		return container()->get( __CLASS__ );
 	}
 }

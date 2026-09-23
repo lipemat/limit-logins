@@ -3,8 +3,8 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins\Security;
 
+use Lipe\Lib\Container\Instance;
 use Lipe\Limit_Logins\Settings;
-use function Lipe\Limit_Logins\container;
 
 /**
  * Handle username enumeration prevention.
@@ -14,7 +14,9 @@ use function Lipe\Limit_Logins\container;
  *
  */
 final class Username_Detection {
-	private const FAKE_USER_ID = 999_999_9999;
+	use Instance;
+
+	private const int FAKE_USER_ID = 999_999_9999;
 
 
 	/**
@@ -69,10 +71,5 @@ final class Username_Detection {
 			return false;
 		}
 		return $send;
-	}
-
-
-	public static function in(): Username_Detection {
-		return container()->get( __CLASS__ );
 	}
 }

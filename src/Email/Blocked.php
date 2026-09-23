@@ -3,6 +3,7 @@ declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins\Email;
 
+use Lipe\Lib\Container\Factory;
 use Lipe\Limit_Logins\Attempts\Attempt;
 
 /**
@@ -11,6 +12,8 @@ use Lipe\Limit_Logins\Attempts\Attempt;
  *
  */
 final class Blocked implements Email {
+	use Factory;
+
 	private static Blocked $current;
 
 
@@ -52,6 +55,6 @@ final class Blocked implements Email {
 
 
 	public static function factory( Attempt $attempt, string $key ): Blocked {
-		return new self( $attempt, $key );
+		return self::factorize( $attempt, $key );
 	}
 }

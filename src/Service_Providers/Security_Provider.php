@@ -6,25 +6,14 @@ namespace Lipe\Limit_Logins\Service_Providers;
 use Lipe\Limit_Logins\Security\Oembed_Endpoint;
 use Lipe\Limit_Logins\Security\Username_Detection;
 use Lipe\Limit_Logins\Security\Users;
-use Pimple\Container;
-use Pimple\ServiceProviderInterface;
 
 /**
  * @author Mat Lipe
  * @since  August 2024
  *
- * @phpstan-type PROVIDER array{
- *     "Lipe\Limit_Logins\Security\Oembed_Endpoint": Oembed_Endpoint,
- *     "Lipe\Limit_Logins\Security\Username_Detection": Username_Detection,
- *     "Lipe\Limit_Logins\Security\Users": Users,
- * }
  */
-final class Security_Provider implements ServiceProviderInterface {
-	public function register( Container $pimple ): void {
-		$pimple[ Oembed_Endpoint::class ] = fn() => new Oembed_Endpoint();
-		$pimple[ Username_Detection::class ] = fn() => new Username_Detection();
-		$pimple[ Users::class ] = fn() => new Users();
-
+final class Security_Provider implements Provider {
+	public function register(): void {
 		$this->Oembed_Endpoint();
 		$this->Username_Detection();
 		$this->Users();

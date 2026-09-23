@@ -1,11 +1,8 @@
 <?php
-/** @noinspection PhpExpressionResultUnusedInspection, PhpUnhandledExceptionInspection */
 declare( strict_types=1 );
 
-use Lipe\Limit_Logins\Container;
 use Lipe\WP_Unit\Exceptions\TestHelperException;
 use Lipe\WP_Unit\Utils\PrivateAccess;
-use function Lipe\Limit_Logins\container;
 
 /**
  * Version 5.0.0
@@ -58,50 +55,4 @@ function get_private_property( string|object $object, string $property ): mixed 
  */
 function set_private_property( string|object $object, string $property, mixed $value ): void {
 	PrivateAccess::in()->set_private_property( $object, $property, $value );
-}
-
-/**
- * Change any object within the container to another object.
- *
- * @example      works well with Php 7 anonymous classes
- *          $mock = new class extends \Lipe\Project\Runner\Tasks\Email {
- *              public function run_task(){
- *                  $emails = call_private_method($this, 'get_existing_emails');
- *              }
- *          }
- *
- * @example      change_container_object('cron.tasks.email', new Timeout_Email());.
- *
- * @note         Will override final classed due to `BypassFinals::enable();`.
- *
- * @param string $key        - The container key.
- * @param object $object     - object instantiated with new just like within the container.
- *                           Done this way to allow passing whatever we want to the constructor of said object.
- * @param bool   $is_factory - Does this object use a factory method such as $container->factory() or $container->protect().
- *                           If it does and this is not set to true it will Error : Function name must be a string.
- *
- * @return void
- */
-function change_container_object( string $key, object $object, bool $is_factory = false ): void {
-	$container = container()->container();
-	unset( $container[ $key ] );
-	if ( $is_factory ) {
-		$container[ $key ] = $container->protect( function() use ( $object ) {
-			return $object;
-		} );
-	} else {
-		$container[ $key ] = function() use ( $object ) {
-			return $object;
-		};
-	}
-}
-
-/**
- * Reset any changes made to the container during testing.
- *
- * @see \WP_UnitTestCase_Base::tear_down
- */
-function tests_reset_container(): void {
-	PrivateAccess::in()->set_private_property( Container::instance(), 'core_instance', null );
-	Container::instance();
 }
