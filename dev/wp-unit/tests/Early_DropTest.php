@@ -658,9 +658,9 @@ final class Early_DropTest extends \WP_UnitTestCase {
 	private function assertFormDropped(): void {
 		$rendered = $this->assertDropped();
 
-		$this->assertEqualHTML( '<!DOCTYPE html><html lang="' . esc_attr( get_bloginfo( 'language' ) ) . '"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Login Blocked</title></head><body><p>' . Authenticate::in()->get_blocked_message() . '</p></body></html>', $rendered );
+		$this->assertEqualHTML( '<!DOCTYPE html><html lang="' . esc_attr( get_bloginfo( 'language' ) ) . '"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Login Blocked</title></head><body><p>' . Authenticate::in()->get_blocked_message() . '</p><p><a href="' . esc_url( wp_lostpassword_url() ) . '">Lost your password?</a></p></body></html>', $rendered );
 
-		$this->assertStringContainsString( '<meta charset="utf-8" />', $rendered, 'A lost password link should be rendered.' );
+		$this->assertStringContainsString( '<a href="' . esc_url( wp_lostpassword_url() ) . '">Lost your password?</a>', $rendered, 'A lost password link should be rendered.' );
 	}
 
 
@@ -779,6 +779,7 @@ final class Early_DropTest extends \WP_UnitTestCase {
 
 	/**
 	 * Every action core handles itself, from `$default_actions` in `wp-login.php`.
+	 * Keep these expectations independent of the early-drop deny list.
 	 *
 	 * @return array<string, array{action: string, message: string}>
 	 */
@@ -811,6 +812,7 @@ final class Early_DropTest extends \WP_UnitTestCase {
 
 	/**
 	 * XML-RPC methods core serves to anonymous callers.
+	 * Keep these expectations independent of the early-drop allow list.
 	 *
 	 * @return array<string, array{method: string, message: string}>
 	 */

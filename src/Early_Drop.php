@@ -1,5 +1,4 @@
 <?php
-//phpcs:disable WordPress.Security.NonceVerification
 declare( strict_types=1 );
 
 namespace Lipe\Limit_Logins;
@@ -262,6 +261,7 @@ final class Early_Drop {
 	 * Get a sanitized string from the query or the form, which is where core
 	 * reads the `wp-login.php` action and the REST route from.
 	 */
+	//phpcs:disable WordPress.Security.NonceVerification -- Core login has no nonce; these form fields are read-only.
 	private function get_requested_value( string $key ): string {
 		if ( ! isset( $_REQUEST[ $key ] ) || ! \is_string( $_REQUEST[ $key ] ) ) {
 			return '';
@@ -281,6 +281,7 @@ final class Early_Drop {
 
 		return sn( $_POST[ $key ] );
 	}
+	//phpcs:enable WordPress.Security.NonceVerification
 
 
 	/**
@@ -330,7 +331,7 @@ final class Early_Drop {
 
 		echo '<!DOCTYPE html><html lang="' . esc_attr( get_bloginfo( 'language' ) ) . '"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Login Blocked</title></head><body><p>';
 		echo wp_kses_post( Authenticate::in()->get_blocked_message() );
-		echo '</p></body></html>';
+		echo '</p><p><a href="' . esc_url( wp_lostpassword_url() ) . '">Lost your password?</a></p></body></html>';
 
 		Utils::in()->exit();
 	}
