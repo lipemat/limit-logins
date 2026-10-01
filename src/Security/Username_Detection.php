@@ -24,7 +24,7 @@ final class Username_Detection {
 	 *
 	 * @action wp_error_added 10 4
 	 */
-	public function standardize_login_errors( string $code, \WP_Error $error ): void {
+	public function standardize_login_errors( string|int $code, \WP_Error $error ): void {
 		if ( 'invalid_username' === $code || 'incorrect_password' === $code ) {
 			if ( ! Settings::in()->get_option( Settings::DISABLE_USER_ARCHIVE, false ) ) {
 				return;
