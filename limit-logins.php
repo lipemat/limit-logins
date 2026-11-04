@@ -47,22 +47,22 @@ add_action( 'cli_init', function() {
 /**
  * A namespaced function to use within this plugin.
  *
- * @param string $value
- *
- * @return string
+ * @phpstan-return ($value is null? null : string)
  */
-function sn( string $value ): string {
-	return trim( sanitize_text_field( wp_unslash( $value ) ) );
+function sn( float|int|string|null $value ): ?string {
+	if ( null === $value ) {
+		return null;
+	}
+	if ( \is_string( $value ) ) {
+		$value = \trim( sanitize_text_field( wp_unslash( $value ) ) );
+	}
+	return (string) $value;
 }
 
 /**
  * A namespaced function to use within this plugin.
- *
- * @param string|int|float|\Stringable|\BackedEnum $value
- *
- * @return string
  */
-function es( $value ): string {
+function es( \BackedEnum|float|\Stringable|int|string|null $value ): string {
 	if ( $value instanceof \BackedEnum ) {
 		return (string) $value->value;
 	}

@@ -18,7 +18,7 @@ final class Utils {
 
 	public function get_current_ip(): string {
 		if ( isset( $_SERVER['REMOTE_ADDR'] ) && false !== \WP_Http::is_ip_address( sn( $_SERVER['REMOTE_ADDR'] ) ) ) {
-			return sn( $_SERVER['REMOTE_ADDR'] );
+			return (string) sn( $_SERVER['REMOTE_ADDR'] );
 		}
 		return self::UNKNOWN_IP;
 	}
