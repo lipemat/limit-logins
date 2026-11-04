@@ -174,6 +174,7 @@ class SettingsTest extends \WP_UnitTestCase {
 
 
 	private static function settings_box(): \CMB2 {
+		PrivateAccess::in()->set_private_property( \CMB2_Boxes::class, 'cmb2_instances', [] );
 		do_action( 'cmb2_init' );
 		$box = cmb2_get_metabox( Settings::NAME, Settings::NAME, 'options-page' );
 		self::assertInstanceOf( \CMB2::class, $box );
