@@ -29,13 +29,7 @@ const LIMIT_LOGINS_PATH = __DIR__;
 // Blocked login submissions exit here, before the providers run at `plugins_loaded`.
 Early_Drop::in()->maybe_drop();
 
-add_action( 'plugins_loaded', function() {
-	( new Attempts_Provider() )->register();
-	( new Authenticate_Provider() )->register();
-	( new Email_Provider() )->register();
-	( new Security_Provider() )->register();
-	( new Settings_Provider() )->register();
-} );
+add_action( 'plugins_loaded', register_providers( ... ) );
 
 add_action( 'cli_init', function() {
 	if ( ! class_exists( '\WP_CLI' ) ) {
@@ -43,6 +37,23 @@ add_action( 'cli_init', function() {
 	}
 	\WP_CLI::add_command( 'limit-logins', Commands::class );
 } );
+
+/**
+ * Register the hooks of every service provider.
+ *
+ * Skipped while installing, when the tables do not exist yet and an
+ * `admin` user must be allowed.
+ */
+function register_providers(): void {
+	if ( true === wp_installing() ) {
+		return;
+	}
+	( new Attempts_Provider() )->register();
+	( new Authenticate_Provider() )->register();
+	( new Email_Provider() )->register();
+	( new Security_Provider() )->register();
+	( new Settings_Provider() )->register();
+}
 
 /**
  * A namespaced function to use within this plugin.
